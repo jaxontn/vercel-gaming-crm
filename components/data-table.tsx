@@ -108,12 +108,15 @@ import {
 
 export const schema = z.object({
   id: z.number(),
-  header: z.string(),
-  type: z.string(),
+  campaignName: z.string(),
+  clientName: z.string(),
+  campaignType: z.string(),
   status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
+  dataCollected: z.string(),
+  conversionRate: z.string(),
+  revenueGenerated: z.string(),
+  startDate: z.string(),
+  endDate: z.string(),
 })
 
 // Create a separate component for the drag handle

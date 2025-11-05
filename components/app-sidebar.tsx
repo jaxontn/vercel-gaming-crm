@@ -2,21 +2,19 @@
 
 import * as React from "react"
 import {
-  IconCamera,
+  IconBulb,
   IconChartBar,
   IconDashboard,
   IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
-  IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
-  IconSearch,
-  IconSettings,
+  IconTarget,
+  IconTrophy,
+  IconUserPlus,
   IconUsers,
+  IconSettings,
+  IconHelp,
+  IconSearch,
+  IconChartDots3,
+  IconGitBranch,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -35,9 +33,9 @@ import {
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "CRM Admin",
+    email: "admin@dataharvest.com",
+    avatar: "/avatars/crm.jpg",
   },
   navMain: [
     {
@@ -46,69 +44,81 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
+      title: "Campaigns",
       url: "#",
-      icon: IconListDetails,
+      icon: IconBulb,
+    },
+    {
+      title: "Data Harvest",
+      url: "#",
+      icon: IconDatabase,
+    },
+    {
+      title: "Merchants",
+      url: "#",
+      icon: IconUsers,
     },
     {
       title: "Analytics",
       url: "#",
       icon: IconChartBar,
     },
-    {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
-    },
   ],
   navClouds: [
     {
-      title: "Capture",
-      icon: IconCamera,
+      title: "Gamification",
+      icon: IconTrophy,
       isActive: true,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Spin & Win",
           url: "#",
         },
         {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
+          title: "Loyalty Points",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Challenges",
           url: "#",
         },
       ],
     },
     {
-      title: "Prompts",
-      icon: IconFileAi,
+      title: "Lead Gen",
+      icon: IconUserPlus,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Email Capture",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Social Sharing",
+          url: "#",
+        },
+        {
+          title: "Referral Program",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Promotions",
+      icon: IconTarget,
+      url: "#",
+      items: [
+        {
+          title: "Flash Sales",
+          url: "#",
+        },
+        {
+          title: "VIP Access",
+          url: "#",
+        },
+        {
+          title: "Mystery Offers",
           url: "#",
         },
       ],
@@ -133,19 +143,19 @@ const data = {
   ],
   documents: [
     {
-      name: "Data Library",
+      name: "Customer Data",
       url: "#",
-      icon: IconDatabase,
+      icon: IconChartDots3,
     },
     {
-      name: "Reports",
+      name: "Performance",
       url: "#",
-      icon: IconReport,
+      icon: IconChartBar,
     },
     {
-      name: "Word Assistant",
+      name: "Automation",
       url: "#",
-      icon: IconFileWord,
+      icon: IconGitBranch,
     },
   ],
 }
@@ -161,8 +171,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <IconBulb className="!size-5" />
+                <span className="text-base font-semibold">DataHarvest CRM</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

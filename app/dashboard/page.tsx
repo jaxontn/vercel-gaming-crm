@@ -1,6 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table"
+import { DataTable } from "@/components/crm-data-table"
 import { SectionCards } from "@/components/section-cards"
 import { SiteHeader } from "@/components/site-header"
 import {
@@ -9,6 +9,10 @@ import {
 } from "@/components/ui/sidebar"
 
 import data from "./data.json"
+import type { CampaignData } from "@/components/crm-data-table"
+
+// Type assertion for the imported JSON data
+const campaignData = data as CampaignData[]
 
 export default function Page() {
   return (
@@ -30,7 +34,7 @@ export default function Page() {
               <div className="px-4 lg:px-6">
                 <ChartAreaInteractive />
               </div>
-              <DataTable data={data} />
+              <DataTable data={campaignData} />
             </div>
           </div>
         </div>
