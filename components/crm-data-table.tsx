@@ -35,7 +35,6 @@ import {
 export interface CampaignData {
   id: number
   campaignName: string
-  clientName: string
   campaignType: string
   status: "Active" | "Completed" | "Planning"
   dataCollected: string
@@ -53,17 +52,6 @@ const columns: ColumnDef<CampaignData>[] = [
       return <div className="font-medium">{row.original.campaignName}</div>
     },
     enableHiding: false,
-  },
-  {
-    accessorKey: "clientName",
-    header: "Client",
-    cell: ({ row }) => (
-      <div className="w-40">
-        <Badge variant="secondary" className="text-xs">
-          {row.original.clientName}
-        </Badge>
-      </div>
-    ),
   },
   {
     accessorKey: "campaignType",

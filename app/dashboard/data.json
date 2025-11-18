@@ -2,7 +2,6 @@
   {
     "id": 1,
     "campaignName": "Summer Spin & Win",
-    "clientName": "Bella's Boutique",
     "campaignType": "Spin Wheel",
     "status": "Active",
     "dataCollected": "2,847",
@@ -14,7 +13,6 @@
   {
     "id": 2,
     "campaignName": "Loyalty Points Program",
-    "clientName": "Tech Solutions Inc",
     "campaignType": "Points System",
     "status": "Active",
     "dataCollected": "5,123",
@@ -26,7 +24,6 @@
   {
     "id": 3,
     "campaignName": "Email Capture Challenge",
-    "clientName": "Green Leaf Cafe",
     "campaignType": "Lead Generation",
     "status": "Completed",
     "dataCollected": "892",
@@ -38,7 +35,6 @@
   {
     "id": 4,
     "campaignName": "Social Media Contest",
-    "clientName": "FitLife Gym",
     "campaignType": "Social Sharing",
     "status": "Active",
     "dataCollected": "3,456",
@@ -50,7 +46,6 @@
   {
     "id": 5,
     "campaignName": "Birthday Rewards Club",
-    "clientName": "Urban Style Apparel",
     "campaignType": "VIP Program",
     "status": "Planning",
     "dataCollected": "0",
@@ -62,7 +57,6 @@
   {
     "id": 6,
     "campaignName": "Refer-a-Friend Bonus",
-    "clientName": "Pet Paradise Store",
     "campaignType": "Referral Program",
     "status": "Active",
     "dataCollected": "1,234",
@@ -70,77 +64,5 @@
     "revenueGenerated": "$3,920.00",
     "startDate": "2025-06-15",
     "endDate": "2025-11-15"
-  },
-  {
-    "id": 7,
-    "campaignName": "Flash Sale Scavenger Hunt",
-    "clientName": "Bookworm Central",
-    "campaignType": "Game Challenge",
-    "status": "Active",
-    "dataCollected": "4,567",
-    "conversionRate": "38.9%",
-    "revenueGenerated": "$8,350.00",
-    "startDate": "2025-07-10",
-    "endDate": "2025-07-25"
-  },
-  {
-    "id": 8,
-    "campaignName": "Customer Feedback Rewards",
-    "clientName": "Serenity Spa",
-    "campaignType": "Survey Campaign",
-    "status": "Completed",
-    "dataCollected": "678",
-    "conversionRate": "73.5%",
-    "revenueGenerated": "$2,100.00",
-    "startDate": "2025-05-01",
-    "endDate": "2025-05-31"
-  },
-  {
-    "id": 9,
-    "campaignName": "Holiday Gift Guide",
-    "clientName": "Gadget Galaxy",
-    "campaignType": "Interactive Quiz",
-    "status": "Planning",
-    "dataCollected": "0",
-    "conversionRate": "0%",
-    "revenueGenerated": "$0.00",
-    "startDate": "2025-11-01",
-    "endDate": "2025-12-25"
-  },
-  {
-    "id": 10,
-    "campaignName": "Mystery Box Promotion",
-    "clientName": "Taste of Italy Restaurant",
-    "campaignType": "Mystery Offer",
-    "status": "Active",
-    "dataCollected": "1,890",
-    "conversionRate": "41.7%",
-    "revenueGenerated": "$5,670.00",
-    "startDate": "2025-06-20",
-    "endDate": "2025-08-20"
-  },
-  {
-    "id": 11,
-    "campaignName": "Product Launch VIP Access",
-    "clientName": "Cosmetics Beauty Bar",
-    "campaignType": "Early Access",
-    "status": "Active",
-    "dataCollected": "2,345",
-    "conversionRate": "29.3%",
-    "revenueGenerated": "$7,230.00",
-    "startDate": "2025-07-05",
-    "endDate": "2025-08-05"
-  },
-  {
-    "id": 12,
-    "campaignName": "Weekend Warriors Challenge",
-    "clientName": "Outdoor Adventure Gear",
-    "campaignType": "Fitness Challenge",
-    "status": "Completed",
-    "dataCollected": "1,567",
-    "conversionRate": "58.4%",
-    "revenueGenerated": "$4,890.00",
-    "startDate": "2025-03-01",
-    "endDate": "2025-03-31"
   }
 ]

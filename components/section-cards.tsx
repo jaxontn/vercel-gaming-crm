@@ -15,86 +15,90 @@ export function SectionCards() {
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Data Points Collected</CardDescription>
+          <CardDescription>QR Code Scans</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            28.5K
+            5.3K
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp />
-              +34.2%
+              +28.4%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Excellent data harvest <IconTrendingUp className="size-4" />
+            High engagement rate <IconTrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            Customer insights collected this month
+            Total scans this month
           </div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Active Campaigns</CardDescription>
+          <CardDescription>Active Players</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            7
+            1,247
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp />
-              +2 new
+              +156 this week
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Campaigns running now <IconTrendingUp className="size-4" />
+            Growing player base <IconTrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            3 planning, 2 completed this month
+            Registered gamers
           </div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total Merchants</CardDescription>
+          <CardDescription>Games Played</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            156
+            8.9K
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp />
-              +12.5%
+              +42.1%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong merchant acquisition <IconTrendingUp className="size-4" />
+            Excellent retention <IconTrendingUp className="size-4" />
           </div>
-          <div className="text-muted-foreground">Active merchants this quarter</div>
+          <div className="text-muted-foreground">
+            Total game sessions
+          </div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Avg Conversion Rate</CardDescription>
+          <CardDescription>Data Points Captured</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            41.3%
+            3.2K
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp />
-              +5.8%
+              +67.3%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Above industry average <IconTrendingUp className="size-4" />
+            Rich customer insights <IconTrendingUp className="size-4" />
           </div>
-          <div className="text-muted-foreground">Campaign performance metric</div>
+          <div className="text-muted-foreground">
+            Phone, social, preferences
+          </div>
         </CardFooter>
       </Card>
     </div>

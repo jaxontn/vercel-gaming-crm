@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import {
   IconBulb,
   IconChartBar,
@@ -19,6 +20,7 @@ import {
 
 import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
+import { NavClouds } from "@/components/nav-clouds"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -33,34 +35,34 @@ import {
 
 const data = {
   user: {
-    name: "CRM Admin",
-    email: "admin@dataharvest.com",
-    avatar: "/avatars/crm.jpg",
+    name: "Merchant Admin",
+    email: "admin@yourbusiness.com",
+    avatar: "/avatars/merchant.jpg",
   },
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
+      title: "QR Codes",
+      url: "/dashboard/qr-codes",
+      icon: IconTarget,
+    },
+    {
       title: "Campaigns",
-      url: "#",
+      url: "/dashboard/campaigns",
       icon: IconBulb,
     },
     {
-      title: "Data Harvest",
-      url: "#",
+      title: "Customer Data",
+      url: "/dashboard/customer-data",
       icon: IconDatabase,
     },
     {
-      title: "Merchants",
-      url: "#",
-      icon: IconUsers,
-    },
-    {
       title: "Analytics",
-      url: "#",
+      url: "/dashboard/analytics",
       icon: IconChartBar,
     },
   ],
@@ -69,57 +71,57 @@ const data = {
       title: "Gamification",
       icon: IconTrophy,
       isActive: true,
-      url: "#",
+      url: "/dashboard/gamification",
       items: [
         {
           title: "Spin & Win",
-          url: "#",
+          url: "/dashboard/gamification/spin-win",
         },
         {
           title: "Loyalty Points",
-          url: "#",
+          url: "/dashboard/gamification/loyalty-points",
         },
         {
           title: "Challenges",
-          url: "#",
+          url: "/dashboard/gamification/challenges",
         },
       ],
     },
     {
       title: "Lead Gen",
       icon: IconUserPlus,
-      url: "#",
+      url: "/dashboard/lead-generation",
       items: [
         {
           title: "Email Capture",
-          url: "#",
+          url: "/dashboard/lead-generation/email-capture",
         },
         {
           title: "Social Sharing",
-          url: "#",
+          url: "/dashboard/lead-generation/social-sharing",
         },
         {
           title: "Referral Program",
-          url: "#",
+          url: "/dashboard/lead-generation/referral-program",
         },
       ],
     },
     {
       title: "Promotions",
       icon: IconTarget,
-      url: "#",
+      url: "/dashboard/promotions",
       items: [
         {
           title: "Flash Sales",
-          url: "#",
+          url: "/dashboard/promotions/flash-sales",
         },
         {
           title: "VIP Access",
-          url: "#",
+          url: "/dashboard/promotions/vip-access",
         },
         {
           title: "Mystery Offers",
-          url: "#",
+          url: "/dashboard/promotions/mystery-offers",
         },
       ],
     },
@@ -127,7 +129,7 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/dashboard/settings",
       icon: IconSettings,
     },
     {
@@ -144,17 +146,17 @@ const data = {
   documents: [
     {
       name: "Customer Data",
-      url: "#",
+      url: "/dashboard/customer-data",
       icon: IconChartDots3,
     },
     {
       name: "Performance",
-      url: "#",
+      url: "/dashboard/analytics",
       icon: IconChartBar,
     },
     {
       name: "Automation",
-      url: "#",
+      url: "/dashboard/campaigns",
       icon: IconGitBranch,
     },
   ],
@@ -170,16 +172,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link href="/dashboard">
                 <IconBulb className="!size-5" />
-                <span className="text-base font-semibold">DataHarvest CRM</span>
-              </a>
+                <span className="text-base font-semibold">Gamified CRM</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <NavClouds items={data.navClouds} />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
