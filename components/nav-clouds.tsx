@@ -54,7 +54,7 @@ export function NavClouds({
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <SidebarMenu>
+                <SidebarMenu key={`${item.title}-submenu`}>
                   {item.items?.map((subItem) => (
                     <SidebarMenuItem key={subItem.title}>
                       <SidebarMenuButton asChild>

@@ -78,6 +78,26 @@ const data = {
           url: "/dashboard/gamification/spin-win",
         },
         {
+          title: "Memory Match",
+          url: "/dashboard/gamification/memory-match",
+        },
+        {
+          title: "Lucky Dice",
+          url: "/dashboard/gamification/lucky-dice",
+        },
+        {
+          title: "Quick Tap Challenge",
+          url: "/dashboard/gamification/quick-tap",
+        },
+        {
+          title: "Word Puzzle",
+          url: "/dashboard/gamification/word-puzzle",
+        },
+        {
+          title: "Color Match",
+          url: "/dashboard/gamification/color-match",
+        },
+        {
           title: "Loyalty Points",
           url: "/dashboard/gamification/loyalty-points",
         },
@@ -87,7 +107,7 @@ const data = {
         },
       ],
     },
-    {
+    /*{ 
       title: "Lead Gen",
       icon: IconUserPlus,
       url: "/dashboard/lead-generation",
@@ -124,7 +144,7 @@ const data = {
           url: "/dashboard/promotions/mystery-offers",
         },
       ],
-    },
+    }, */
   ],
   navSecondary: [
     {
@@ -183,7 +203,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavClouds items={data.navClouds} />
-        <NavDocuments items={data.documents} />
+        {/* <NavDocuments items={data.documents} /> */}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

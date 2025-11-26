@@ -1,0 +1,606 @@
+// DataHarvest Gamified CRM - Database Architecture
+// MySQL database schema for gamified QR campaign CRM platform
+
+Project DataHarvest_CRM {
+  database_type: "MySQL"
+}
+
+// User Management
+Table merchants {
+  id varchar [primary key]
+  business_name varchar [not null]
+  contact_name varchar [not null]
+  email varchar [unique, not null]
+  phone varchar
+  password_hash varchar [not null]
+  business_category varchar
+  website_url varchar
+  logo_url varchar
+  address text
+  city varchar
+  state varchar
+  country varchar
+  postal_code varchar
+  timezone varchar [default: 'UTC']
+  subscription_plan varchar [default: 'basic']
+  subscription_status varchar [default: 'active']
+  is_verified boolean [default: false]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+  last_login_at timestamp
+  settings json
+
+  indexes {
+    (email) [unique]
+    (business_name)
+    (subscription_plan, subscription_status)
+    (created_at)
+  }
+}
+
+Table merchant_users {
+  id varchar [primary key]
+  merchant_id varchar
+  name varchar [not null]
+  email varchar [not null]
+  role varchar [default: 'member']
+  permissions json
+  is_active boolean [default: true]
+  invited_by varchar
+  invited_at timestamp
+  joined_at timestamp [default: `CURRENT_TIMESTAMP`]
+  last_login_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id)
+    (email)
+    (role, is_active)
+  }
+}
+
+// Customer Management
+Table customers {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  name varchar [not null]
+  phone varchar [not null]
+  email varchar
+  instagram varchar
+  avatar_url varchar
+  date_of_birth date
+  gender varchar
+  location varchar
+  language varchar [default: 'en']
+  timezone varchar [default: 'UTC']
+  source varchar
+  referral_code varchar
+  referred_customers int [default: 0]
+  total_points int [default: 0]
+  current_level int [default: 1]
+  level_progress int [default: 0]
+  games_played int [default: 0]
+  campaigns_participated int [default: 0]
+  daily_streak int [default: 0]
+  longest_streak int [default: 0]
+  last_play_date timestamp
+  status varchar [default: 'active']
+  vip_status varchar [default: 'none']
+  privacy_consent boolean [default: true]
+  marketing_consent boolean [default: false]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, phone) [unique]
+    (merchant_id, email)
+    (merchant_id, status)
+    (merchant_id, total_points)
+    (merchant_id, created_at)
+    (referral_code)
+    (source)
+  }
+}
+
+Table customer_segments {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  name varchar [not null]
+  description text
+  criteria json [not null]
+  customer_count int [default: 0]
+  is_active boolean [default: true]
+  created_by varchar
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, is_active)
+    (created_by)
+  }
+}
+
+Table customer_segment_memberships {
+  id varchar [primary key]
+  segment_id varchar [not null]
+  customer_id varchar [not null]
+  added_at timestamp [default: `CURRENT_TIMESTAMP`]
+  notes text
+
+  indexes {
+    (segment_id, customer_id) [unique]
+    (customer_id)
+  }
+}
+
+// Campaign Management
+Table qr_campaigns {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  name varchar [not null]
+  description text
+  campaign_type varchar [default: 'standard']
+  qr_url varchar [not null]
+  qr_code_image varchar
+  landing_page_url varchar
+  branding_settings json
+  game_settings json
+  target_audience json
+  location varchar
+  geofence json
+  start_date timestamp [not null]
+  end_date timestamp
+  budget decimal
+  total_scans int [default: 0]
+  unique_scans int [default: 0]
+  conversions int [default: 0]
+  data_points_collected int [default: 0]
+  revenue_generated decimal [default: 0]
+  status varchar [default: 'draft']
+  is_public boolean [default: true]
+  require_location boolean [default: false]
+  daily_play_limit int [default: 3]
+  point_multiplier decimal [default: 1.0]
+  created_by varchar [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+  activated_at timestamp
+  deactivated_at timestamp
+
+  indexes {
+    (merchant_id, status)
+    (merchant_id, created_at)
+    (merchant_id, total_scans)
+    (start_date, end_date)
+    (campaign_type)
+    (qr_url) [unique]
+  }
+}
+
+Table campaign_performance {
+  id varchar [primary key]
+  campaign_id varchar [not null]
+  date date [not null]
+  daily_scans int [default: 0]
+  unique_daily_scans int [default: 0]
+  daily_conversions int [default: 0]
+  daily_revenue decimal [default: 0]
+  new_customers int [default: 0]
+  returning_customers int [default: 0]
+  games_played int [default: 0]
+  points_awarded int [default: 0]
+  avg_session_duration int
+  bounce_rate decimal
+  conversion_rate decimal
+
+  indexes {
+    (campaign_id, date) [unique]
+    (campaign_id)
+    (date)
+  }
+}
+
+// Gamification System
+Table game_templates {
+  id varchar [primary key]
+  name varchar [not null]
+  game_type varchar [not null]
+  description text [not null]
+  difficulty_level varchar [default: 'medium']
+  base_points int [not null]
+  min_points int [default: 0]
+  max_points int [not null]
+  avg_duration int
+  rules json
+  thumbnail_url varchar
+  is_active boolean [default: true]
+  play_count int [default: 0]
+  avg_rating decimal [default: 0]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (game_type)
+    (difficulty_level)
+    (is_active)
+    (play_count)
+  }
+}
+
+Table game_sessions {
+  id varchar [primary key]
+  customer_id varchar [not null]
+  campaign_id varchar
+  game_id varchar [not null]
+  game_type varchar [not null]
+  difficulty_level varchar [default: 'medium']
+  points_earned int [default: 0]
+  points_multiplier decimal [default: 1.0]
+  bonus_points int [default: 0]
+  session_duration int
+  moves_count int [default: 0]
+  accuracy_rate decimal
+  level_achieved varchar
+  stars_earned int [default: 0]
+  was_completed boolean [default: false]
+  completion_reason varchar
+  high_score boolean [default: false]
+  daily_play_number int [default: 1]
+  session_data json
+  device_type varchar
+  browser varchar
+  app_version varchar
+  ip_address varchar
+  user_agent text
+  started_at timestamp [default: `CURRENT_TIMESTAMP`]
+  completed_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (customer_id, completed_at)
+    (campaign_id, completed_at)
+    (game_id, completed_at)
+    (customer_id, game_type, completed_at)
+    (points_earned)
+    (was_completed, completed_at)
+    (daily_play_number)
+    (ip_address)
+  }
+}
+
+Table leaderboards {
+  id varchar [primary key]
+  campaign_id varchar
+  merchant_id varchar [not null]
+  customer_id varchar [not null]
+  game_type varchar
+  period_type varchar [default: 'alltime']
+  period_start timestamp [not null]
+  period_end timestamp [not null]
+  rank_position int [not null]
+  points int [not null]
+  games_played int [default: 0]
+  best_score int [default: 0]
+  avg_score decimal [default: 0]
+  win_rate decimal [default: 0]
+  previous_rank int
+  rank_change int [default: 0]
+  achievements json
+  is_tied boolean [default: false]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (campaign_id, period_type, rank_position)
+    (merchant_id, period_type, rank_position)
+    (customer_id, period_type, period_end)
+    (game_type, period_type, rank_position)
+    (points)
+  }
+}
+
+Table rewards {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  name varchar [not null]
+  description text
+  reward_type varchar [not null]
+  reward_value int
+  reward_code varchar
+  image_url varchar
+  category varchar
+  rarity varchar [default: 'common']
+  requirements json
+  usage_limit int
+  usage_count int [default: 0]
+  expiration_date timestamp
+  is_active boolean [default: true]
+  is_public boolean [default: true]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, reward_type)
+    (merchant_id, is_active)
+    (reward_code) [unique]
+    (rarity)
+    (expiration_date)
+  }
+}
+
+Table customer_rewards {
+  id varchar [primary key]
+  customer_id varchar [not null]
+  reward_id varchar [not null]
+  earned_from varchar
+  earned_from_id varchar
+  points_cost int
+  redemption_code varchar [unique]
+  status varchar [default: 'available']
+  used_at timestamp
+  expires_at timestamp
+  claimed_at timestamp [default: `CURRENT_TIMESTAMP`]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (customer_id, status)
+    (reward_id, status)
+    (redemption_code) [unique]
+    (expires_at)
+  }
+}
+
+// Analytics
+Table analytics_events {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  customer_id varchar
+  campaign_id varchar
+  session_id varchar
+  event_type varchar [not null]
+  event_category varchar [not null]
+  event_action varchar [not null]
+  event_label varchar
+  event_value decimal
+  event_data json
+  page_url varchar
+  referrer_url varchar
+  utm_source varchar
+  utm_medium varchar
+  utm_campaign varchar
+  utm_content varchar
+  utm_term varchar
+  device_type varchar
+  device_brand varchar
+  device_model varchar
+  operating_system varchar
+  operating_system_version varchar
+  browser varchar
+  browser_version varchar
+  screen_resolution varchar
+  viewport_size varchar
+  ip_address varchar
+  country varchar
+  city varchar
+  latitude decimal
+  longitude decimal
+  user_agent text
+  language varchar
+  timezone varchar
+  is_unique_event boolean [default: true]
+  is_first_session boolean [default: false]
+  session_duration int
+  page_views int [default: 1]
+  conversion_value decimal
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, created_at)
+    (customer_id, created_at)
+    (campaign_id, created_at)
+    (event_type, created_at)
+    (event_category, created_at)
+    (session_id, created_at)
+    (ip_address, created_at)
+    (utm_campaign, created_at)
+    (device_type, created_at)
+    (country, created_at)
+  }
+}
+
+Table daily_analytics {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  campaign_id varchar
+  date date [not null]
+  total_sessions int [default: 0]
+  unique_users int [default: 0]
+  new_users int [default: 0]
+  returning_users int [default: 0]
+  qr_scans int [default: 0]
+  unique_qr_scans int [default: 0]
+  game_sessions int [default: 0]
+  games_completed int [default: 0]
+  total_points_awarded int [default: 0]
+  avg_session_duration int
+  bounce_rate decimal
+  conversion_rate decimal
+  data_points_collected int [default: 0]
+  forms_completed int [default: 0]
+  social_shares int [default: 0]
+  referrals int [default: 0]
+  revenue_attribution decimal [default: 0]
+  cost_per_acquisition decimal
+  customer_lifetime_value decimal
+  top_games json
+  top_countries json
+  device_breakdown json
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, date) [unique]
+    (campaign_id, date) [unique]
+    (date)
+  }
+}
+
+Table conversion_funnels {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  campaign_id varchar
+  name varchar [not null]
+  description text
+  funnel_steps json [not null]
+  date_range_start date [not null]
+  date_range_end date [not null]
+  total_entered int [default: 0]
+  total_completed int [default: 0]
+  overall_conversion_rate decimal [default: 0]
+  step_data json
+  created_by varchar
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, created_at)
+    (campaign_id, created_at)
+    (date_range_start, date_range_end)
+  }
+}
+
+// Notifications
+Table notification_templates {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  template_type varchar [not null]
+  template_name varchar [not null]
+  subject_template varchar
+  body_template text [not null]
+  variables json
+  design_settings json
+  is_active boolean [default: true]
+  usage_count int [default: 0]
+  created_by varchar
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, template_type)
+    (merchant_id, is_active)
+    (template_name)
+  }
+}
+
+Table notifications {
+  id varchar [primary key]
+  customer_id varchar [not null]
+  merchant_id varchar [not null]
+  template_id varchar
+  notification_type varchar [not null]
+  channel varchar [not null]
+  recipient varchar [not null]
+  subject varchar
+  message text [not null]
+  trigger_event varchar
+  trigger_data json
+  priority varchar [default: 'normal']
+  send_at timestamp [not null]
+  sent_at timestamp
+  delivery_status varchar [default: 'pending']
+  error_message text
+  opened_at timestamp
+  clicked_at timestamp
+  unsubscribe_token varchar [unique]
+  is_read boolean [default: false]
+  is_clicked boolean [default: false]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (customer_id, created_at)
+    (merchant_id, created_at)
+    (notification_type, delivery_status)
+    (send_at, delivery_status)
+    (trigger_event, created_at)
+    (unsubscribe_token) [unique]
+  }
+}
+
+// Settings
+Table system_settings {
+  id varchar [primary key]
+  setting_key varchar [unique, not null]
+  setting_value text
+  setting_type varchar [default: 'string']
+  category varchar
+  description text
+  is_public boolean [default: false]
+  validation_rules json
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (setting_key) [unique]
+    (category)
+    (is_public)
+  }
+}
+
+Table api_integrations {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  integration_type varchar [not null]
+  integration_name varchar [not null]
+  api_key varchar
+  api_secret varchar
+  webhook_url varchar
+  configuration json
+  is_active boolean [default: true]
+  last_sync_at timestamp
+  sync_frequency int [default: 3600]
+  error_count int [default: 0]
+  last_error text
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, integration_type)
+    (integration_type, is_active)
+    (last_sync_at)
+  }
+}
+
+// Relationships
+Ref: merchants.id - merchant_users.merchant_id
+Ref: merchants.id - customers.merchant_id
+Ref: merchants.id - qr_campaigns.merchant_id
+Ref: merchant_users.id - qr_campaigns.created_by
+Ref: merchants.id - customer_segments.merchant_id
+Ref: merchant_users.id - customer_segments.created_by
+Ref: customer_segments.id - customer_segment_memberships.segment_id
+Ref: customers.id - customer_segment_memberships.customer_id
+Ref: qr_campaigns.id - campaign_performance.campaign_id
+Ref: customers.id - game_sessions.customer_id
+Ref: qr_campaigns.id - game_sessions.campaign_id
+Ref: game_templates.id - game_sessions.game_id
+Ref: qr_campaigns.id - leaderboards.campaign_id
+Ref: merchants.id - leaderboards.merchant_id
+Ref: customers.id - leaderboards.customer_id
+Ref: merchants.id - rewards.merchant_id
+Ref: customers.id - customer_rewards.customer_id
+Ref: rewards.id - customer_rewards.reward_id
+Ref: merchants.id - analytics_events.merchant_id
+Ref: customers.id - analytics_events.customer_id
+Ref: qr_campaigns.id - analytics_events.campaign_id
+Ref: merchants.id - daily_analytics.merchant_id
+Ref: qr_campaigns.id - daily_analytics.campaign_id
+Ref: merchants.id - conversion_funnels.merchant_id
+Ref: qr_campaigns.id - conversion_funnels.campaign_id
+Ref: merchant_users.id - conversion_funnels.created_by
+Ref: merchants.id - notification_templates.merchant_id
+Ref: merchant_users.id - notification_templates.created_by
+Ref: customers.id - notifications.customer_id
+Ref: merchants.id - notifications.merchant_id
+Ref: notification_templates.id - notifications.template_id
+Ref: merchants.id - api_integrations.merchant_id

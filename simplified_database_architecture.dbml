@@ -1,0 +1,379 @@
+// Simplified Gamified CRM Database Architecture
+// Focused on actively used features
+
+Project Gamified_CRM {
+  database_type: "MySQL"
+}
+
+// Core User Management
+Table merchants {
+  id varchar [primary key]
+  business_name varchar [not null]
+  contact_name varchar [not null]
+  email varchar [unique, not null]
+  phone varchar
+  password_hash varchar [not null]
+  logo_url varchar
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (email) [unique]
+    (created_at)
+  }
+}
+
+Table merchant_users {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  name varchar [not null]
+  email varchar [not null]
+  role varchar [default: 'admin']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id)
+    (email)
+  }
+}
+
+// Customer Management
+Table customers {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  name varchar [not null]
+  phone varchar [not null]
+  email varchar
+  instagram varchar
+  avatar_url varchar
+  age_group varchar  // demographic info
+  gender varchar  // demographic info
+  location varchar  // city/state for regional analytics
+  total_points int [default: 0]
+  games_played int [default: 0]
+  last_play_date timestamp
+  first_play_date timestamp
+  total_session_duration int [default: 0]  // total time spent in seconds
+  average_session_duration decimal [default: 0]  // average session time in seconds
+  preferred_game_type varchar  // most played game type
+  engagement_score decimal [default: 0]  // calculated engagement metric
+  customer_segment varchar [default: 'new']  // "new", "active", "loyal", "at_risk"
+  is_active boolean [default: true]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, phone) [unique]
+    (merchant_id, total_points)
+    (merchant_id, created_at)
+    (merchant_id, customer_segment)
+    (merchant_id, engagement_score)
+    (age_group, gender, location)
+  }
+}
+
+// QR Campaigns
+Table qr_campaigns {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  name varchar [not null]
+  description text
+  campaign_type varchar [not null]
+  qr_url varchar [not null]
+  qr_code_image varchar
+  landing_page_url varchar
+  game_settings json
+  start_date timestamp [not null]
+  end_date timestamp
+  budget decimal  // campaign budget
+  total_spent decimal [default: 0]
+  target_audience json  // age range, gender, location targeting
+  total_scans int [default: 0]
+  unique_scans int [default: 0]
+  total_participants int [default: 0]  // unique users who played games
+  data_collected int [default: 0]
+  conversion_rate decimal [default: 0]
+  revenue_generated decimal [default: 0]
+  target_roi decimal  // target return on investment
+  actual_roi decimal [default: 0]
+  status varchar [default: 'draft']
+  created_by varchar [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+  activated_at timestamp
+
+  indexes {
+    (merchant_id, status)
+    (merchant_id, created_at)
+    (merchant_id, total_scans)
+    (merchant_id, conversion_rate)
+    (campaign_type)
+  }
+}
+
+// Game Sessions
+Table game_sessions {
+  id varchar [primary key]
+  customer_id varchar [not null]
+  campaign_id varchar
+  game_type varchar [not null]  // "spin-win", "memory-match", "lucky-dice", "quick-tap", "word-puzzle", "color-match"
+  points_earned int [default: 0]
+  session_duration int
+  score int [default: 0]
+  difficulty_level varchar [default: 'medium']  // "easy", "medium", "hard"
+  was_completed boolean [default: false]
+  prize_won varchar  // prize id if user won something
+  game_data json  // game-specific data (moves, taps, words_found, colors_matched, etc.)
+  device_info json  // device type, OS, browser for analytics
+  started_at timestamp [default: `CURRENT_TIMESTAMP`]
+  completed_at timestamp
+
+  indexes {
+    (customer_id, completed_at)
+    (campaign_id, completed_at)
+    (game_type, completed_at)
+    (points_earned)
+    (difficulty_level)
+    (prize_won)
+  }
+}
+
+Table game_prizes {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  prize_name varchar [not null]
+  prize_description text
+  prize_type varchar [not null]  // "points", "discount", "free_item", "voucher", "badge"
+  game_type varchar  // specific game this prize applies to, null for all games
+  prize_value json  // points_amount, discount_percentage, item_value, etc.
+  win_probability decimal [default: 0]  // probability of winning (0-1)
+  quantity_available int
+  quantity_won int [default: 0]
+  min_score_required int  // minimum score to win this prize
+  difficulty_required varchar [default: 'medium']  // "easy", "medium", "hard"
+  is_active boolean [default: true]
+  start_date timestamp
+  end_date timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, game_type)
+    (is_active)
+    (win_probability)
+    (min_score_required)
+  }
+}
+
+// Leaderboards
+Table leaderboards {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  customer_id varchar [not null]
+  game_type varchar
+  period_type varchar [default: 'alltime']  // "daily", "weekly", "monthly", "alltime"
+  period_start timestamp [not null]
+  period_end timestamp [not null]
+  rank_position int [not null]
+  best_score int [default: 0]
+  games_played int [default: 0]
+  total_points int [default: 0]
+  achievement varchar
+  previous_rank int
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, period_type, rank_position)
+    (customer_id, period_type, period_end)
+    (game_type, period_type, rank_position)
+    (total_points)
+  }
+}
+
+// Analytics
+Table daily_analytics {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  campaign_id varchar
+  date date [not null]
+  total_sessions int [default: 0]
+  unique_users int [default: 0]
+  new_users int [default: 0]
+  returning_users int [default: 0]
+  qr_scans int [default: 0]
+  game_sessions int [default: 0]
+  games_completed int [default: 0]
+  total_points_awarded int [default: 0]
+  total_prizes_won int [default: 0]
+  loyalty_points_earned int [default: 0]
+  loyalty_points_redeemed int [default: 0]
+  challenges_completed int [default: 0]
+  avg_session_duration int
+  engagement_rate decimal [default: 0]  // percentage of active users who played games
+  retention_rate decimal [default: 0]  // percentage of users who returned
+  conversion_rate decimal [default: 0]  // percentage of users who completed desired action
+  revenue_generated decimal [default: 0]
+  campaign_roi decimal [default: 0]
+  demographic_breakdown json  // age, gender, location analytics
+  game_type_breakdown json  // sessions per game type
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, date) [unique]
+    (campaign_id, date) [unique]
+  }
+}
+
+// Loyalty System
+Table loyalty_rules {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  rule_name varchar [not null]
+  rule_type varchar [not null]  // "earn", "redeem", "milestone"
+  points_required int [default: 0]
+  points_awarded int [default: 0]
+  action_required varchar  // "game_play", "daily_login", "referral", "purchase"
+  action_data json
+  is_active boolean [default: true]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, rule_type)
+    (is_active)
+  }
+}
+
+Table loyalty_transactions {
+  id varchar [primary key]
+  customer_id varchar [not null]
+  merchant_id varchar [not null]
+  rule_id varchar
+  transaction_type varchar [not null]  // "earned", "redeemed"
+  points_change int [not null]
+  current_balance int [not null]
+  transaction_description varchar
+  metadata json
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (customer_id, created_at)
+    (merchant_id, created_at)
+    (transaction_type)
+  }
+}
+
+Table loyalty_rewards {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  reward_name varchar [not null]
+  reward_description text
+  reward_type varchar [not null]  // "discount", "free_item", "voucher", "points_multiplier"
+  points_cost int [not null]
+  reward_value json  // discount_percentage, item_value, multiplier_value, etc.
+  redemption_instructions text
+  terms_conditions text
+  is_active boolean [default: true]
+  stock_quantity int
+  usage_limit int  // max redemptions per customer
+  total_redemptions int [default: 0]
+  start_date timestamp
+  end_date timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, is_active)
+    (points_cost)
+    (reward_type)
+  }
+}
+
+// Challenges System
+Table challenges {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  title varchar [not null]
+  description text
+  challenge_type varchar [not null]  // "game_master", "points_collector", "daily_streak", "social"
+  target_value int [not null]
+  reward_points int [not null]
+  reward_type varchar
+  badge_icon varchar
+  badge_color varchar
+  difficulty_level varchar [default: 'medium']  // "easy", "medium", "hard"
+  max_participants int
+  current_participants int [default: 0]
+  completion_count int [default: 0]
+  start_date timestamp [not null]
+  end_date timestamp [not null]
+  is_active boolean [default: true]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, challenge_type)
+    (is_active)
+    (start_date, end_date)
+    (difficulty_level)
+  }
+}
+
+Table user_challenges {
+  id varchar [primary key]
+  customer_id varchar [not null]
+  challenge_id varchar [not null]
+  current_progress int [default: 0]
+  is_completed boolean [default: false]
+  completed_at timestamp
+  reward_claimed boolean [default: false]
+  claimed_at timestamp
+  started_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (customer_id, challenge_id)
+    (is_completed)
+    (customer_id, is_completed)
+  }
+}
+
+// Settings
+Table game_settings {
+  id varchar [primary key]
+  merchant_id varchar [not null]
+  game_type varchar [not null]
+  is_active boolean [default: true]
+  daily_play_limit int [default: 5]
+  base_points int [default: 10]
+  difficulty varchar [default: 'medium']
+  configuration json  // game-specific configuration
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (merchant_id, game_type)
+    (is_active)
+  }
+}
+
+// Relationships
+Ref: merchants.id - merchant_users.merchant_id
+Ref: merchants.id - customers.merchant_id
+Ref: merchants.id - qr_campaigns.merchant_id
+Ref: merchant_users.id - qr_campaigns.created_by
+Ref: customers.id - game_sessions.customer_id
+Ref: qr_campaigns.id - game_sessions.campaign_id
+Ref: merchants.id - leaderboards.merchant_id
+Ref: customers.id - leaderboards.customer_id
+Ref: merchants.id - daily_analytics.merchant_id
+Ref: qr_campaigns.id - daily_analytics.campaign_id
+Ref: merchants.id - game_settings.merchant_id
+Ref: merchants.id - loyalty_rules.merchant_id
+Ref: merchants.id - loyalty_rewards.merchant_id
+Ref: customers.id - loyalty_transactions.customer_id
+Ref: loyalty_rules.id - loyalty_transactions.rule_id
+Ref: merchants.id - challenges.merchant_id
+Ref: challenges.id - user_challenges.challenge_id
+Ref: customers.id - user_challenges.customer_id
+Ref: merchants.id - game_prizes.merchant_id
+Ref: game_prizes.id - game_sessions.prize_won
