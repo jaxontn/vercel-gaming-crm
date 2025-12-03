@@ -2,14 +2,17 @@
 
 ## Overview
 
-This document provides comprehensive documentation for the simplified Gamified CRM database architecture, including detailed explanations of each table and their usage across different pages in the application.
+This document provides comprehensive documentation for the Gamified CRM database architecture, aligned with `simplified_database_schema.sql` and `simplified_database_architecture.dbml`. All table definitions, relationships, and features reflect the actual implemented schema.
 
 ## Database Architecture
 
 ### Project Details
 - **Project Name**: Gamified_CRM
-- **Database Type**: MySQL
+- **Database Type**: MySQL 8.0+
 - **Architecture Pattern**: Relational with JSON flexibility for game-specific data
+- **Schema Files**:
+  - `simplified_database_schema.sql` - Complete SQL schema with indexes, triggers, and procedures
+  - `simplified_database_architecture.dbml` - Visual database model with relationships
 
 ---
 
@@ -530,41 +533,144 @@ These indexes ensure fast response times for:
 
 ---
 
+## Advanced Database Features
+
+### Views
+
+The schema includes three pre-defined views for common queries:
+
+#### `v_customer_summary`
+**Purpose**: Customer profiles with recent game activity and performance metrics
+**Access**: `SELECT * FROM v_customer_summary WHERE merchant_id = ?`
+**Fields**: Customer profile + recent games count + average score
+**Used by**: Customer data pages and analytics dashboards
+
+#### `v_campaign_performance`
+**Purpose**: Campaign metrics with game session data and prize statistics
+**Access**: `SELECT * FROM v_campaign_performance WHERE merchant_id = ?`
+**Fields**: Campaign details + total game sessions + unique players + average score + prizes won
+**Used by**: Campaign management and performance analytics
+
+#### `v_daily_metrics`
+**Purpose**: Daily analytics with calculated completion rates and performance metrics
+**Access**: `SELECT * FROM v_daily_metrics WHERE merchant_id = ? AND date >= ?`
+**Fields**: Daily analytics + calculated completion rate + engagement metrics
+**Used by**: Analytics and reporting dashboards
+
+### Stored Procedures
+
+#### `UpdateCustomerEngagementScore(customer_id)`
+**Purpose**: Automatically calculates and updates customer engagement scores
+**Triggers**: Called via database triggers after game sessions
+**Logic**:
+- Engagement score = (sessions × 2, max 40) + (avg_duration ÷ 60, max 20) + (recent_activity × 10, max 30) + (points ÷ 100, max 10)
+- Updates customer_segment: 'loyal' (80+), 'active' (50+), 'engaged' (20+), 'at_risk' (below)
+
+#### `GenerateDailyAnalytics(merchant_id, analytics_date)`
+**Purpose**: Aggregates daily analytics from raw game session data
+**Usage**: Scheduled job or manual execution for daily reporting
+**Features**: Prevents duplicate analytics, calculates all daily metrics automatically
+
+### Triggers
+
+#### `tr_game_session_after_insert`
+**Purpose**: Updates customer statistics after each game session
+**Actions**: Increments games_played, adds points, updates last_play_date, adds session duration, sets first_play_date
+
+#### `tr_campaign_session_after_insert`
+**Purpose**: Tracks campaign participation when game sessions are linked to campaigns
+**Actions**: Increments total_participants in qr_campaigns table
+
+#### `tr_challenge_progress_update`
+**Purpose**: Updates challenge progress for game_master type challenges
+**Actions**: Increments current_progress, marks completion when target reached, records completion timestamp
+
+---
+
 ## Data Relationships
 
-The database maintains referential integrity through foreign key relationships:
+The database maintains referential integrity through foreign key relationships with specific delete behaviors:
 
-- All customer data is scoped to merchants
-- Game sessions link to customers and campaigns
-- Loyalty transactions track point movements
-- Challenge progress connects users to challenges
-- Analytics aggregate data across all tables
+- **Customers** → `merchants.id` (ON DELETE CASCADE) - Customer data removed when merchant deleted
+- **Game Sessions** → `customers.id` (ON DELETE CASCADE) - Game sessions removed with customer
+- **Game Sessions** → `qr_campaigns.id` (ON DELETE SET NULL) - Campaign reference nullified, sessions preserved
+- **All Tables** → merchant-specific foreign keys with appropriate cascade behaviors
+- **Challenge Progress** → `challenges.id` (ON DELETE CASCADE) - Progress removed with challenge
 
-This design ensures data consistency while maintaining the flexibility needed for a gamified CRM system.
+This design ensures data consistency while maintaining audit trails for analytics.
 
 ---
 
-## Security Considerations
+## Security & Performance
 
-- Passwords are stored as encrypted hashes
-- Phone numbers are unique per merchant for privacy
-- Personal data (email, demographics) is optional
-- Audit trails track who created/modified campaigns
+### Security Features
+- Passwords stored as encrypted hashes in `merchants.password_hash`
+- Phone numbers are unique per merchant (`(merchant_id, phone)` unique index)
+- Personal data (email, demographics) are optional fields
+- Audit trails via `created_by` fields and automatic timestamps
 - JSON fields allow flexible data without schema changes
 
+### Performance Optimization
+- **Strategic Indexes**: 50+ indexes optimized for common query patterns
+- **Composite Indexes**: Multi-column indexes for frequent filter combinations
+- **Unique Indexes**: Data integrity for emails and phone numbers
+- **Query Performance**: Optimized for leaderboard queries, analytics reporting, and customer searches
+
 ---
 
-## Scalability Notes
+## Foreign Key Behaviors
 
-The architecture supports:
-- Multi-tenant design (merchants as tenants)
-- Horizontal scaling through proper indexing
-- Flexible game data storage without schema changes
-- Analytics aggregation for reporting performance
-- Separate tables for different data domains
+| Relationship | Delete Behavior | Purpose |
+|-------------|---------------|---------|
+| `merchant_users.merchant_id` → `merchants.id` | CASCADE | Remove users when merchant deleted |
+| `customers.merchant_id` → `merchants.id` | CASCADE | Remove customers when merchant deleted |
+| `qr_campaigns.merchant_id` → `merchants.id` | CASCADE | Remove campaigns when merchant deleted |
+| `qr_campaigns.created_by` → `merchant_users.id` | CASCADE | Handle user deletion |
+| `game_sessions.customer_id` → `customers.id` | CASCADE | Remove sessions when customer deleted |
+| `game_sessions.campaign_id` → `qr_campaigns.id` | SET NULL | Preserve sessions, nullify campaign reference |
+| `game_sessions.prize_won` → `game_prizes.id` | SET NULL | Preserve session data, remove prize reference |
 
-This design can handle:
-- Millions of customer records per merchant
-- High-volume game sessions
-- Complex analytics queries
-- Real-time leaderboard updates
+---
+
+## Schema Version & Maintenance
+
+### Version Control
+- **Current Version**: 1.0.0 (stored in `schema_metadata` table)
+- **Migration Strategy**: Use TypeORM migrations or custom migration scripts
+- **Change Tracking**: All tables include `created_at` and `updated_at` timestamps
+
+### Maintenance Recommendations
+1. **Weekly**: Run `ANALYZE TABLE` on all tables for query optimization
+2. **Monthly**: Review index usage and remove unused indexes
+3. **Quarterly**: Archive old game sessions (>1 year) to archive tables
+4. **Monitoring**: Track slow query logs, table sizes, and connection performance
+
+---
+
+## Data Integrity Features
+
+### Automatic Calculations
+- **Engagement Scores**: Automatically calculated and updated via triggers
+- **Customer Segmentation**: Dynamic categorization based on activity patterns
+- **Session Statistics**: Real-time aggregation of game performance metrics
+- **Campaign ROI**: Automatic calculation of return on investment metrics
+
+### Validation & Constraints
+- **Unique Constraints**: Prevent duplicate emails and phone numbers per merchant
+- **Foreign Key Constraints**: Ensure data relationships are maintained
+- **Check Constraints**: Automatic updates ensure consistent data across related tables
+- **Trigger-based Updates**: Maintain consistency between related data points
+
+---
+
+## JSON Field Implementation
+
+All JSON fields support structured data storage with specific formats:
+
+- **`qr_campaigns.game_settings`**: Game configurations and prize distributions
+- **`qr_campaigns.target_audience`**: Age range, gender, location targeting parameters
+- **`game_sessions.game_data`**: Game-specific metrics (moves, taps, scores, etc.)
+- **`game_sessions.device_info`**: Device type, OS, browser for analytics
+- **`daily_analytics.demographic_breakdown`**: Age, gender, location analytics breakdown
+- **`daily_analytics.game_type_breakdown`**: Sessions and metrics per game type
+- **Loyalty JSON fields**: Rules, transactions, and rewards with structured metadata
