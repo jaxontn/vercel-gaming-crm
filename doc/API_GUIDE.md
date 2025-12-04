@@ -366,7 +366,7 @@ test('integration: customer API', async () => {
 ### 1. "Authentication Required" Error
 **Solution:** Ensure user is logged in and session credentials exist
 ```typescript
-if (!localStorage.getItem('auth_user_id')) {
+if (!sessionStorage.getItem('id') || !sessionStorage.getItem('session_secret')) {
   // Redirect to login
 }
 ```
@@ -374,13 +374,13 @@ if (!localStorage.getItem('auth_user_id')) {
 ### 2. Hash Validation Failed
 **Solution:** Check session_secret and data format consistency
 ```typescript
-console.log('Session exists:', !!localStorage.getItem('auth_session_secret'));
+console.log('Session exists:', !!sessionStorage.getItem('session_secret'));
 ```
 
 ### 3. Permission Denied
 **Solution:** Verify user role and permissions
 ```typescript
-const userData = JSON.parse(localStorage.getItem('user_data'));
+const userData = JSON.parse(sessionStorage.getItem('user_data'));
 console.log('User role:', userData.role);
 ```
 

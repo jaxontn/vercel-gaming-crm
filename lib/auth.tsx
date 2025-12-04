@@ -36,34 +36,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const userData = localStorage.getItem('user_data');
+      const userData = sessionStorage.getItem('user_data');
+      const sessionSecret = sessionStorage.getItem('session_secret');
+      const userId = sessionStorage.getItem('id');
 
-      if (token && userData) {
-        // Verify token with public API (no auth required)
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/v1/request/modules/merchants/public_verify.php`, {
+      if (userData && sessionSecret && userId) {
+        // Verify session using authenticate.php
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/authenticate.php`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({
+            action: 'verify_session',
+            user_id: userId,
+            session_secret: sessionSecret
+          }),
         });
 
         if (response.ok) {
           const data = await response.json();
           if (data.status === 'SUCCESS') {
-            setUser(data.data);
+            // Use the stored user data since we're just verifying the session
+            const user = JSON.parse(userData);
+            setUser(user);
           } else {
-            // Token invalid, clear storage
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_data');
+            // Session invalid, clear storage
+            sessionStorage.removeItem('auth_token');
+            sessionStorage.removeItem('user_data');
+            sessionStorage.removeItem('id');
+            sessionStorage.removeItem('session_secret');
             setUser(null);
           }
         } else {
           // Clear storage on network error
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user_data');
+          sessionStorage.removeItem('auth_token');
+          sessionStorage.removeItem('user_data');
+          sessionStorage.removeItem('id');
+          sessionStorage.removeItem('session_secret');
           setUser(null);
         }
       } else {
@@ -71,6 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Auth check failed:', error);
+      // Clear storage on error
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('user_data');
+      sessionStorage.removeItem('id');
+      sessionStorage.removeItem('session_secret');
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -100,16 +116,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (data.status === 'SUCCESS') {
-        const { user, token, session } = data.data;
+        const { user, session } = data.data;
 
-        // Store JWT auth data
-        localStorage.setItem('auth_token', token);
-        localStorage.setItem('user_data', JSON.stringify(user));
+        // Store all auth data in sessionStorage only
+        sessionStorage.setItem('user_data', JSON.stringify(user));
 
         // Store session credentials for callApi compatibility
         if (session) {
-          localStorage.setItem('auth_user_id', session.user_id);
-          localStorage.setItem('auth_session_secret', session.session_secret);
           sessionStorage.setItem('id', session.user_id);
           sessionStorage.setItem('session_secret', session.session_secret);
         }
@@ -132,13 +145,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
 
-      // Use the public login endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/v1/request/modules/merchants/public_login.php`, {
+      // Use the public login endpoint via authenticate.php
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/authenticate.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          action: 'login',
+          email,
+          password
+        }),
       });
 
       if (!response.ok) {
@@ -148,11 +165,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (data.status === 'SUCCESS') {
-        const { user, token } = data.data;
+        const { user, session } = data.data;
 
-        // Store auth data
-        localStorage.setItem('auth_token', token);
-        localStorage.setItem('user_data', JSON.stringify(user));
+        // Store auth data in sessionStorage
+        sessionStorage.setItem('user_data', JSON.stringify(user));
+
+        // Store session credentials for callApi compatibility
+        if (session) {
+          sessionStorage.setItem('id', session.user_id);
+          sessionStorage.setItem('session_secret', session.session_secret);
+        }
 
         setUser(user);
         setIsLoading(false);
@@ -169,13 +191,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    // Clear JWT auth data
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_data');
-
-    // Clear session credentials for callApi
-    localStorage.removeItem('auth_user_id');
-    localStorage.removeItem('auth_session_secret');
+    // Clear all auth data from sessionStorage
+    sessionStorage.removeItem('auth_token');
+    sessionStorage.removeItem('user_data');
     sessionStorage.removeItem('id');
     sessionStorage.removeItem('session_secret');
 

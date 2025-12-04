@@ -122,15 +122,14 @@ SELECT * FROM user_session WHERE user_id = 'user_xxx';
 3. Click "Login"
 4. **Expected:** Redirect to dashboard
 
-### ✅ Verify LocalStorage After Login
+### ✅ Verify SessionStorage After Login
 
-Open browser DevTools (F12) → Application → Local Storage:
+Open browser DevTools (F12) → Application → Session Storage:
 
 **Should contain:**
-- `auth_token`: JWT token string
 - `user_data`: JSON with user info
-- `auth_user_id`: User ID string
-- `auth_session_secret`: 64-char hex string
+- `id`: User ID string
+- `session_secret`: 64-char hex string
 
 ## 4. callApi Testing (Hash Authentication)
 
@@ -265,12 +264,12 @@ curl -X POST http://localhost:8080/api/v1/authenticate.php \
 **Expected:** Error response with "Invalid email or password"
 
 ### ✅ Test API Without Authentication
-- Clear localStorage
+- Clear sessionStorage
 - Try to call an API
 - **Expected:** Authentication required error
 
 ### ✅ Test Invalid Hash
-- Modify session secret in localStorage
+- Modify session secret in sessionStorage
 - Try callApi
 - **Expected:** Hash validation failed
 
@@ -355,7 +354,7 @@ Track your test results:
 | Session Creation | ⬜ | |
 | Frontend Registration | ⬜ | |
 | Frontend Login | ⬜ | |
-| LocalStorage Storage | ⬜ | |
+| SessionStorage Storage | ⬜ | |
 | callApi Function | ⬜ | |
 | Hash Validation | ⬜ | |
 | Error Handling | ⬜ | |
@@ -367,7 +366,7 @@ Track your test results:
 ## 🔧 Common Issues & Solutions
 
 1. **Hash Mismatch**
-   - Clear localStorage and re-login
+   - Clear sessionStorage and re-login
    - Check JSON normalization
    - Verify session_secret storage
 

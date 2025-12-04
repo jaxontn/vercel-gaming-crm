@@ -2,42 +2,39 @@
 
 ## Overview
 
-The Gaming CRM implements a dual authentication system that supports both modern JWT-based authentication for direct endpoints and traditional session-based hash validation for secured API calls.
+The Gaming CRM implements a **unified session-based authentication system** that handles user authentication and secures API calls through session validation and hash verification.
 
 ## Architecture
 
 ```
-Frontend → Dual Auth System → Backend APIs
-         ├─ Direct Auth (JWT) → /api/v1/authenticate.php
-         └─ Session Auth (Hash) → /api/v1/request/ → callApi()
+Frontend → Session-Based Auth → Backend APIs
+         ├─ Login/Register → /api/v1/authenticate.php
+         └─ API Calls → /api/v1/request/ → callApi() → Hash Validation
 ```
 
-## Authentication Methods
+## Authentication Method
 
-### 1. Direct Authentication (JWT)
-Used for: Login, Registration, Password Reset
+### Session-Based Authentication with Hash Validation
+Used for: All operations (Login, Registration, API Calls)
 
-- **Endpoint**: `/api/v1/authenticate.php`
-- **Method**: Direct POST with credentials
-- **Response**: JWT token + Session credentials
-- **No additional hashing required**
-
-### 2. Session-Based Authentication (Hash Validation)
-Used for: All other API calls
-
-- **Endpoint**: `/api/v1/request/`
-- **Method**: `callApi()` function with automatic hashing
-- **Security**: MD5(data + session_secret)
-- **Requirements**: Valid session credentials
+- **Endpoint**: `/api/v1/authenticate.php` for auth, `/api/v1/request/` for APIs
+- **Storage**: `sessionStorage` (cleared when browser closes)
+- **Security**: Session-based with user_id + session_secret
+- **API Security**: MD5 hash of request data + session_secret
 
 ## Database Schema
 
 ### Core Tables
 
+#### `merchants` (Business Information)
+- Primary key: `id` (varchar(36) - UUID with 'merchant_' prefix)
+- Stores business details and password hash
+
 #### `merchant_users` (User Table)
 - Serves as the primary user table
 - Contains authentication and profile data
-- Primary key: `id` (varchar(36) - UUID)
+- Primary key: `id` (varchar(36) - UUID with 'user_' prefix)
+- Linked to merchants via `merchant_id`
 
 #### `user_session` (Session Table)
 ```sql
@@ -64,6 +61,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginPublic: (email: string, password: string) => Promise<void>;
   registerMerchant: (businessName: string, contactName: string, email: string, phone: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
@@ -72,16 +70,12 @@ interface AuthContextType {
 
 ### Storage Strategy
 
-#### JWT Authentication (Direct Endpoints)
+**Session Storage** (all data in sessionStorage):
 ```javascript
-localStorage.setItem('auth_token', token);
-localStorage.setItem('user_data', JSON.stringify(user));
-```
+// User data
+sessionStorage.setItem('user_data', JSON.stringify(user));
 
-#### Session Authentication (callApi)
-```javascript
-localStorage.setItem('auth_user_id', session.user_id);
-localStorage.setItem('auth_session_secret', session.session_secret);
+// Session credentials for API calls
 sessionStorage.setItem('id', session.user_id);
 sessionStorage.setItem('session_secret', session.session_secret);
 ```
@@ -100,8 +94,9 @@ await login(email, password);
 **Process:**
 1. Validates credentials against `merchants` table
 2. Creates/updates session in `user_session` table
-3. Returns JWT token + session credentials
-4. Stores both authentication methods
+3. Returns user data + session credentials
+4. Stores in sessionStorage
+5. Redirects to dashboard
 
 ### 2. Registration Flow
 
@@ -117,7 +112,19 @@ await registerMerchant(businessName, contactName, email, phone, password);
 2. Hashes password using `password_hash()`
 3. Returns success confirmation
 
-### 3. Secured API Calls (callApi)
+### 3. Auth Check Flow (On App Load)
+
+```typescript
+// Automatically called by AuthProvider
+const checkAuth = async () => {
+  // Gets user_id and session_secret from sessionStorage
+  // Calls verify_session action
+  // Validates session exists and not expired
+  // Sets user state if valid
+}
+```
+
+### 4. Secured API Calls (callApi)
 
 ```typescript
 import { callApi } from '@/lib/api-client';
@@ -130,14 +137,21 @@ const result = await callApi('customers', 'list', {
 ```
 
 **Process:**
-1. Retrieves session credentials from storage
+1. Retrieves session credentials from sessionStorage
 2. Creates hash: `MD5(JSON.stringify(data) + session_secret)`
 3. Sends to `/api/v1/request/` with session object
-4. Backend validates hash and executes module
+4. Backend validates hash in `core/security/auth.php`
+5. Executes module if valid
 
 ## Backend Implementation
 
-### Direct Authentication (`/api/v1/authenticate.php`)
+### Authentication Endpoint (`/api/v1/authenticate.php`)
+Routes to `/api/v1/request/modules/merchants/authenticate.php`
+
+**Actions Supported:**
+- `login` - Validate credentials, return user + session
+- `register` - Create new merchant
+- `verify_session` - Check session validity
 
 **Login Response:**
 ```json
@@ -153,7 +167,6 @@ const result = await callApi('customers', 'list', {
       "role": "admin",
       "is_owner": 1
     },
-    "token": "jwt_token_base64",
     "session": {
       "user_id": "user_uuid",
       "session_secret": "64_character_hex_string"
@@ -178,45 +191,43 @@ $valid = hash_equals($this_hash, $received_hash);
 ## Security Features
 
 ### 1. Session-Based Security
-- Each login generates unique session secret
-- Device-specific sessions possible
-- Sessions can be revoked per user/device
+- Each login generates unique 64-character hex session secret
+- Device-specific sessions tracked
+- Sessions expire after 30 days
+- Sessions can be revoked per user
 
 ### 2. Request Signing
-- Every API call is signed with hash
+- Every API call is signed with MD5 hash
 - Tamper-proof data transmission
 - Prevents unauthorized API access
 
-### 3. Dual Authentication Layers
-- JWT for stateless authentication
-- Session hash for request validation
-- Separate concerns for different use cases
+### 3. Input Validation
+- SQL injection protection via `mysqli_real_escape_string`
+- Action-based field validation
+- Password hashing with PHP's `password_hash()`
 
-### 4. Password Security
-- Uses PHP's `password_hash()` with proper salt
-- Validates with `password_verify()`
-- No plain text password storage
+### 4. Session Storage
+- Uses sessionStorage (cleared on browser close)
+- No persistent auth tokens stored
+- Session verification on app load
 
 ## Usage Guidelines
 
-### When to Use Direct Authentication
+### When to Use Direct Auth Endpoint
 - User login/logout
 - User registration
-- Password reset
-- Public endpoints
+- Session verification
 
 ### When to Use callApi
 - All business logic APIs
 - Data manipulation operations
 - Secured administrative functions
-- Any endpoint requiring user permissions
 
 ### Error Handling
 ```typescript
 try {
   await callApi('customers', 'create', customerData);
 } catch (error) {
-  // Handle authentication errors
   if (error.message.includes('Authentication required')) {
     // Redirect to login
   }
@@ -235,19 +246,17 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 ### Common Issues
 
 1. **Hash Mismatch**
-   - Check session_secret storage
-   - Verify JSON normalization
+   - Check session_secret in sessionStorage
+   - Verify JSON normalization between frontend/backend
    - Ensure consistent data format
 
 2. **Authentication Required**
-   - Verify session credentials exist
-   - Check localStorage/sessionStorage values
-   - Ensure user is logged in
+   - Verify session credentials exist in sessionStorage
+   - Check user is logged in
+   - Run checkAuth() to verify session
 
-3. **Permission Denied**
-   - Verify user role
-   - Check module permissions
-   - Ensure active user status
+3. **"Missing required field: email" during verify_session**
+   - Fixed: Validation now checks different fields based on action
 
 ### Debug Logging
 ```php
@@ -259,17 +268,24 @@ log::error("Hash calculation details", "api", "request", [
 ]);
 ```
 
-## Migration Notes
+## Recent Updates (December 2024)
 
-- Legacy `user` table replaced by `merchant_users`
-- `user_session` table added for session management
-- Frontend updated to store both JWT and session credentials
-- Authentication flow unified for all user types
+### Major Changes:
+1. **Unified Authentication**: All auth operations now use `/api/v1/authenticate.php`
+2. **Session-Based System**: Moved from JWT tokens to session-based authentication
+3. **verify_session Action**: Added session verification for app load checks
+4. **Fixed Validation**: Action-based field validation (login needs email/password, verify_session needs user_id/session_secret)
+5. **Removed Files**: No longer using `public_login.php` and `public_verify.php`
+
+### Storage Changes:
+- Removed `auth_token` storage
+- Only storing `user_data`, `id`, and `session_secret` in sessionStorage
+- No localStorage usage for authentication
 
 ## Best Practices
 
 1. **Always use callApi for secured operations**
-2. **Store session credentials securely**
+2. **Store session credentials in sessionStorage only**
 3. **Implement proper error handling**
 4. **Log authentication events for security**
 5. **Regular session cleanup for inactive users**
@@ -283,8 +299,8 @@ log::error("Hash calculation details", "api", "request", [
 describe('Authentication', () => {
   test('should login and store credentials', async () => {
     const result = await login(email, password);
-    expect(localStorage.getItem('auth_token')).toBeTruthy();
-    expect(localStorage.getItem('auth_user_id')).toBeTruthy();
+    expect(sessionStorage.getItem('user_data')).toBeTruthy();
+    expect(sessionStorage.getItem('id')).toBeTruthy();
   });
 });
 ```
@@ -305,3 +321,4 @@ For authentication-related issues:
 2. Verify backend logs for authentication errors
 3. Ensure database tables are properly configured
 4. Validate environment variables
+5. Check sessionStorage for proper data storage

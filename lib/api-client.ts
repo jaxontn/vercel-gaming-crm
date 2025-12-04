@@ -14,10 +14,10 @@ class APIClient {
     this.server_domain = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1/';
     this.api_domain = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1/';
 
-    // Initialize session from localStorage or sessionStorage
+    // Initialize session from sessionStorage only
     if (typeof window !== 'undefined') {
-      this.userId = localStorage.getItem('auth_user_id') || sessionStorage.getItem('id');
-      this.secret = localStorage.getItem('auth_session_secret') || sessionStorage.getItem('session_secret');
+      this.userId = sessionStorage.getItem('id');
+      this.secret = sessionStorage.getItem('session_secret');
     }
   }
 
@@ -106,10 +106,8 @@ class APIClient {
     this.userId = userId;
     this.secret = secret;
 
-    // Store for future use
+    // Store in sessionStorage only
     if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_user_id', userId);
-      localStorage.setItem('auth_session_secret', secret);
       sessionStorage.setItem('id', userId);
       sessionStorage.setItem('session_secret', secret);
     }
@@ -123,8 +121,6 @@ class APIClient {
     this.secret = null;
 
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_user_id');
-      localStorage.removeItem('auth_session_secret');
       sessionStorage.removeItem('id');
       sessionStorage.removeItem('session_secret');
     }
@@ -150,7 +146,7 @@ class APIClient {
     };
 
     // Add JWT if available
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('auth_token') : null;
     if (token) {
       (defaultHeaders as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
