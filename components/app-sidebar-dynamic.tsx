@@ -24,9 +24,9 @@ import {
   IconCoin,
   IconFlag,
   IconLoader2,
+  type Icon,
 } from "@tabler/icons-react"
 import { callApi } from "@/lib/api-client"
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavClouds } from "@/components/nav-clouds"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/sidebar"
 
 // Icon mapping for games
-const gameIcons: Record<string, typeof IconTrophy> = {
+const gameIcons: Record<string, Icon> = {
   spinner: IconLoader,
   brain: IconBrain,
   dice: IconDice,
@@ -55,21 +55,20 @@ const gameIcons: Record<string, typeof IconTrophy> = {
   'flag': IconFlag,     // For challenges
 }
 
-// Define types
-interface GameData {
+interface Game {
   game_code: string
   game_name: string
   icon: string
-  is_enabled: boolean | string
+  is_enabled: boolean
 }
 
 // Transform game data from API to NavClouds format
-const transformGamesToNavClouds = (games: GameData[]) => {
+const transformGamesToNavClouds = (games: Game[]) => {
   // Group games by category
   const gameItems = games.map((game) => ({
     title: game.game_name,
     url: `/dashboard/gamification/${game.game_code}`,
-    badge: (game.is_enabled === true || game.is_enabled === '1') ? 'Active' : 'Disabled',
+    badge: game.is_enabled ? 'Active' : 'Disabled',
     icon: gameIcons[game.icon] || IconStar,
   }))
 
@@ -95,11 +94,22 @@ const transformGamesToNavClouds = (games: GameData[]) => {
     isActive: true,
     url: "/dashboard/gamification",
     items: allItems
-  }]
+  }] as {
+    title: string
+    icon: Icon
+    url: string
+    isActive?: boolean
+    items: {
+      title: string
+      url: string
+      badge?: string
+      icon?: Icon
+    }[]
+  }[]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [games, setGames] = React.useState<GameData[]>([])
+  const [games, setGames] = React.useState<Game[]>([])
   const [loading, setLoading] = React.useState(true)
 
   // Static navigation items (non-games)
@@ -186,28 +196,132 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           // User is authenticated, fetch games from API
           const response = await callApi('merchant_games', 'list')
 
-          console.log('Sidebar API Response:', response) // Debug log
-
-          if (response.data?.status === 'SUCCESS' && response.data?.data?.games) {
-            console.log('Games found:', response.data.data.games) // Debug log
-            setGames(response.data.data.games)
+          if (response.status === 'SUCCESS' && response.data?.games) {
+            setGames(response.data.games)
           } else {
-            // No games available if API response is not successful
-            console.log('No games found or API response not successful')
-            console.log('Response status:', response.status)
-            console.log('Response data:', response.data)
-            console.log('Response data data:', response.data?.data)
-            setGames([])
+            // Set default games if API response is not successful
+            setGames([
+              {
+                game_code: 'spin_win',
+                game_name: 'Spin & Win',
+                icon: 'spinner',
+                is_enabled: true,
+              },
+              {
+                game_code: 'memory_match',
+                game_name: 'Memory Match',
+                icon: 'brain',
+                is_enabled: true,
+              },
+              {
+                game_code: 'lucky_dice',
+                game_name: 'Lucky Dice',
+                icon: 'dice',
+                is_enabled: false,
+              },
+              {
+                game_code: 'quick_tap',
+                game_name: 'Quick Tap Challenge',
+                icon: 'hand-pointer',
+                is_enabled: true,
+              },
+              {
+                game_code: 'word_puzzle',
+                game_name: 'Word Puzzle',
+                icon: 'book',
+                is_enabled: true,
+              },
+              {
+                game_code: 'color_match',
+                game_name: 'Color Match',
+                icon: 'palette',
+                is_enabled: false,
+              },
+            ])
           }
         } else {
-          // User is not authenticated, no games available
-          console.log('User not authenticated, no games to display')
-          setGames([])
+          // User is not authenticated, set default games without API call
+          console.log('User not authenticated, showing default games')
+          setGames([
+            {
+              game_code: 'spin_win',
+              game_name: 'Spin & Win',
+              icon: 'spinner',
+              is_enabled: true,
+            },
+            {
+              game_code: 'memory_match',
+              game_name: 'Memory Match',
+              icon: 'brain',
+              is_enabled: true,
+            },
+            {
+              game_code: 'lucky_dice',
+              game_name: 'Lucky Dice',
+              icon: 'dice',
+              is_enabled: false,
+            },
+            {
+              game_code: 'quick_tap',
+              game_name: 'Quick Tap Challenge',
+              icon: 'hand-pointer',
+              is_enabled: true,
+            },
+            {
+              game_code: 'word_puzzle',
+              game_name: 'Word Puzzle',
+              icon: 'book',
+              is_enabled: true,
+            },
+            {
+              game_code: 'color_match',
+              game_name: 'Color Match',
+              icon: 'palette',
+              is_enabled: false,
+            },
+          ])
         }
       } catch (err) {
         console.error('Failed to fetch games:', err)
-        // Set empty games array if API fails
-        setGames([])
+        // Set default games if API fails
+        setGames([
+          {
+            game_code: 'spin_win',
+            game_name: 'Spin & Win',
+            icon: 'spinner',
+            is_enabled: true,
+          },
+          {
+            game_code: 'memory_match',
+            game_name: 'Memory Match',
+            icon: 'brain',
+            is_enabled: true,
+          },
+          {
+            game_code: 'lucky_dice',
+            game_name: 'Lucky Dice',
+            icon: 'dice',
+            is_enabled: false,
+          },
+          {
+            game_code: 'quick_tap',
+            game_name: 'Quick Tap Challenge',
+            icon: 'hand-pointer',
+            is_enabled: true,
+          },
+          {
+            game_code: 'word_puzzle',
+            game_name: 'Word Puzzle',
+            icon: 'book',
+            is_enabled: true,
+          },
+          {
+            game_code: 'color_match',
+            game_name: 'Color Match',
+            icon: 'palette',
+            is_enabled: false,
+          },
+        ])
       } finally {
         setLoading(false)
       }
@@ -218,14 +332,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Transform games to NavClouds format
   const navClouds = React.useMemo(() => {
-    const transformed = transformGamesToNavClouds(games)
-    console.log('Transformed navClouds:', transformed) // Debug log
-    return transformed
+    return transformGamesToNavClouds(games)
   }, [games])
 
   // Enhanced NavClouds component that supports badges
-  const NavCloudsWithBadges = ({ items }: { items: typeof navClouds }) => {
-    console.log('NavCloudsWithBadges - loading:', loading, 'items:', items) // Debug log
+  const NavCloudsWithBadges = ({ items }: { items: {
+    title: string
+    icon: Icon
+    url: string
+    isActive?: boolean
+    items: {
+      title: string
+      url: string
+      badge?: string
+      icon?: Icon
+    }[]
+  }[] }) => {
     return (
       <div className="relative">
         {loading && (

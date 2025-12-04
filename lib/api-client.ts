@@ -1,7 +1,10 @@
 /**
- * API Client for Gaming CRM
- * Follows the legacy callApi pattern for /v1/request/ endpoints
- */
+   * API Client for Gaming CRM
+   * Follows the legacy callApi pattern for /v1/request/ endpoints
+   *
+   * IMPORTANT: This requires a valid session in the backend user_session table
+   * Use login() method to authenticate and create session first
+   */
 
 class APIClient {
   private server_domain: string;
@@ -11,8 +14,8 @@ class APIClient {
 
   constructor() {
     // Load server configuration
-    this.server_domain = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1/';
-    this.api_domain = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1/';
+    this.server_domain = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1';
+    this.api_domain = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1';
 
     // Initialize session from sessionStorage only
     if (typeof window !== 'undefined') {
@@ -22,16 +25,28 @@ class APIClient {
   }
 
   /**
-   * MD5 hash function (simplified implementation)
-   * In production, use a proper crypto library
+   * MD5 hash function implementation
+   * Uses the md5 npm package to match backend PHP MD5 behavior
    */
   private async md5data(data: string): Promise<string> {
-    // Simple hash for demo - replace with proper MD5 implementation
-    const encoder = new TextEncoder();
-    const dataBuffer = encoder.encode(data);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const md5 = (await import('md5')).default;
+    return md5(data);
+  }
+
+  /**
+   * Normalize JSON data to match PHP json_encode behavior
+   * CRITICAL: Must exactly match backend normalization in auth.php
+   */
+  private normalizeJSON(data: Record<string, unknown>): string {
+    // Match PHP's JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES flags
+    let jsonStr = JSON.stringify(data);
+
+    // Convert [] to {} to match PHP behavior for empty arrays
+    if (jsonStr === '[]') {
+      jsonStr = '{}';
+    }
+
+    return jsonStr;
   }
 
   /**
@@ -43,24 +58,52 @@ class APIClient {
    */
   async callApi(module: string, method: string, formData: Record<string, unknown> = {}) {
     try {
-      // Check authentication
+      // Special handling for login - no auth required
+      const isLoginCall = module === 'users' && method === 'login';
+
+      // Check authentication - if not set, try to get from sessionStorage
       if (!this.userId || !this.secret) {
-        throw new Error("Authentication required - User ID or secret not found");
+        if (typeof window !== 'undefined') {
+          this.userId = sessionStorage.getItem('id');
+          this.secret = sessionStorage.getItem('session_secret');
+        }
+
+        // Only throw error if this is not a login call
+        if (!isLoginCall && (!this.userId || !this.secret)) {
+          throw new Error("Authentication required - User ID or secret not found");
+        }
       }
 
       // Create request ID for tracking
       const requestId = `${module}_${method}_${Date.now()}`;
-      const apiUrl = `${this.server_domain}request/`;
+      const apiUrl = `${this.server_domain}/request/`;
 
-      // Prepare the data
-      const postData = JSON.stringify(formData);
-      const hashedData = await this.md5data(postData + this.secret);
+      // Normalize the data to match backend PHP behavior
+      const normalizedData = this.normalizeJSON(formData);
+
+      // Special handling for login - no hash needed since we don't have session yet
+      let hashedData = '';
+
+      if (isLoginCall) {
+        // For login, we don't have a session secret yet
+        // The backend will handle authentication differently for login
+        hashedData = '';
+      } else {
+        // Create hash using normalized data + secret (same as backend)
+        // IMPORTANT: Order must match backend auth.php:74 - data FIRST, then secret
+        const hashInput = normalizedData + this.secret;
+        hashedData = await this.md5data(hashInput);
+
+        console.log(`[API DEBUG] Hash input length: ${hashInput.length}`);
+        console.log(`[API DEBUG] Hash input (first 50 chars): ${hashInput.substring(0, 50)}...`);
+        console.log(`[API DEBUG] Generated hash: ${hashedData}`);
+      }
 
       // Create session object
       const sessionData = {
         module: module,
         method: method,
-        id: this.userId,
+        id: isLoginCall ? '' : (this.userId || ''),
         hash: hashedData
       };
 
@@ -114,6 +157,90 @@ class APIClient {
   }
 
   /**
+   * Login and create session
+   * @param email User email
+   * @param password User password
+   * @param device Device identifier for session tracking
+   * @returns Promise with login result
+   */
+  async login(email: string, password: string, device: string = 'web') {
+    try {
+      // Use the legacy API pattern for login
+      // This will create a session in the backend user_session table
+      const loginData = {
+        email: email,
+        password: password,
+        device: device
+      };
+
+      // Call the users module with login method
+      const response = await this.callApi('users', 'login', loginData);
+
+      // Check if login was successful
+      if (response.data && response.data.status === 'SUCCESS') {
+        const userData = response.data.user_data;
+        const sessionSecret = response.data.session_secret;
+
+        // Set authentication with backend-generated session secret
+        this.setAuth(userData.id, sessionSecret);
+
+        console.log('[API DEBUG] Login successful, user ID:', userData.id);
+        console.log('[API DEBUG] Session secret set:', sessionSecret.substring(0, 10) + '...');
+
+        return {
+          success: true,
+          user: userData,
+          sessionSecret: sessionSecret,
+          message: response.data.message || 'Login successful'
+        };
+      } else {
+        throw new Error(response.data?.message || 'Login failed');
+      }
+
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set authentication with session secret
+   * This should be called after successful login with backend-generated session_secret
+   */
+  setSession(userId: string, sessionSecret: string) {
+    this.userId = userId;
+    this.secret = sessionSecret;
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('id', userId);
+      sessionStorage.setItem('session_secret', sessionSecret);
+    }
+  }
+
+  /**
+   * Logout user from backend and clear local auth
+   */
+  async logout(device: string = 'web') {
+    try {
+      if (this.userId) {
+        // Call backend logout if we have authentication
+        const logoutData = {
+          user_id: this.userId,
+          device: device
+        };
+
+        await this.callApi('users', 'logout', logoutData);
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Continue with clearing local auth even if backend call fails
+    } finally {
+      // Always clear local authentication
+      this.clearAuth();
+    }
+  }
+
+  /**
    * Clear authentication
    */
   clearAuth() {
@@ -139,7 +266,7 @@ class APIClient {
    * @param options Fetch options
    */
   async restCall(endpoint: string, options: RequestInit = {}) {
-    const url = `${this.api_domain}${endpoint}`;
+    const url = `${this.api_domain}/${endpoint}`;
 
     const defaultHeaders = {
       'Content-Type': 'application/json',
@@ -176,8 +303,20 @@ export const callApi = (module: string, method: string, data: Record<string, unk
   return apiClient.callApi(module, method, data);
 };
 
+export const login = (email: string, password: string, device?: string) => {
+  return apiClient.login(email, password, device);
+};
+
+export const logout = (device?: string) => {
+  return apiClient.logout(device);
+};
+
 export const setApiAuth = (userId: string, secret: string) => {
   return apiClient.setAuth(userId, secret);
+};
+
+export const setSession = (userId: string, sessionSecret: string) => {
+  return apiClient.setSession(userId, sessionSecret);
 };
 
 export const clearApiAuth = () => {

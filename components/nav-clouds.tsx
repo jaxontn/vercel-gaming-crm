@@ -19,6 +19,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuBadge,
 } from "@/components/ui/sidebar"
 
 export function NavClouds({
@@ -32,14 +33,20 @@ export function NavClouds({
     items: {
       title: string
       url: string
+      badge?: string
+      icon?: Icon
     }[]
   }[]
 }) {
+  console.log('NavClouds component - items received:', items) // Debug log
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Features</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
+        {items.map((item) => {
+          console.log(`NavClouds - rendering item: ${item.title}, items count: ${item.items?.length || 0}`)
+          return (
           <Collapsible
             key={item.title}
             defaultOpen={item.isActive}
@@ -59,16 +66,28 @@ export function NavClouds({
                     <SidebarMenuItem key={subItem.title}>
                       <SidebarMenuButton asChild>
                         <Link href={subItem.url}>
-                          <span className="ml-6 text-sm">{subItem.title}</span>
+                          {subItem.icon && <subItem.icon className="mr-2 h-4 w-4" />}
+                          <span className="text-sm">{subItem.title}</span>
                         </Link>
                       </SidebarMenuButton>
+                      {subItem.badge && (
+                        <SidebarMenuBadge>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            subItem.badge === 'Active'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {subItem.badge}
+                          </span>
+                        </SidebarMenuBadge>
+                      )}
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
               </CollapsibleContent>
             </SidebarMenuItem>
           </Collapsible>
-        ))}
+          )})}
       </SidebarMenu>
     </SidebarGroup>
   )
