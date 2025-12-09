@@ -1,17 +1,28 @@
 "use client"
 
-import { useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { IconQrcode, IconGift, IconTrophy, IconUser, IconPhone, IconBrandInstagram } from "@tabler/icons-react"
+import { IconQrcode, IconGift, IconTrophy, IconUser, IconPhone, IconBrandInstagram, AlertCircle } from "@tabler/icons-react"
+import { callApi } from "@/lib/api-client"
 
 interface PlayerData {
+  id?: string
   name: string
   phone: string
+  instagram?: string
+  email?: string
+}
+
+interface CustomerInfo {
+  id: string
+  name: string
+  phone: string
+  email?: string
   instagram?: string
 }
 
@@ -25,33 +36,95 @@ const merchantData = {
 export default function PlayPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const merchantId = params.merchantId as string
+  const qrCode = searchParams.get('qrCode')
 
   // For single merchant, use the same data regardless of the merchantId
   const merchant = merchantData
   const [isLoading, setIsLoading] = useState(false)
+  const [showRegistration, setShowRegistration] = useState(true)
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null)
   const [playerData, setPlayerData] = useState<PlayerData>({
     name: "",
     phone: "",
-    instagram: ""
+    instagram: "",
+    email: ""
   })
+
+  // Check if customer info is already stored (from QR registration flow)
+  useEffect(() => {
+    if (qrCode) {
+      const stored = localStorage.getItem('customerInfo');
+      if (stored) {
+        const info = JSON.parse(stored);
+        setCustomerInfo(info);
+        setPlayerData({
+          name: info.name,
+          phone: info.phone,
+          instagram: info.instagram || '',
+          email: info.email || ''
+        });
+        setShowRegistration(false);
+      }
+    }
+  }, [qrCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Store player data in localStorage (in production, this would be an API call)
-    const playerId = `${playerData.phone}_${Date.now()}`
-    localStorage.setItem(`player_${playerId}`, JSON.stringify({
-      ...playerData,
-      merchantId,
-      timestamp: new Date().toISOString()
-    }))
+    try {
+      let customerId: string;
 
-    // Redirect to game gallery
-    setTimeout(() => {
-      router.push(`/play/${merchantId}/games?player=${playerId}`)
-    }, 1000)
+      if (customerInfo?.id) {
+        // Already have customer ID from QR registration
+        customerId = customerInfo.id;
+      } else {
+        // Find or create customer
+        const customerResponse = await callApi('POST', '/customers/find_by_phone', {
+          phone: playerData.phone,
+          merchantId: merchantId
+        });
+
+        if (customerResponse.status === 'SUCCESS' && customerResponse.data) {
+          // Customer exists
+          customerId = customerResponse.data.id;
+        } else {
+          // Create new customer
+          const createResponse = await callApi('POST', '/customers/upsert', {
+            merchantId: merchantId,
+            name: playerData.name,
+            phone: playerData.phone,
+            email: playerData.email || '',
+            instagram: playerData.instagram || ''
+          });
+
+          if (createResponse.status !== 'SUCCESS') {
+            throw new Error(createResponse.message || 'Failed to create customer');
+          }
+          customerId = createResponse.data.id;
+        }
+      }
+
+      // Store player data in localStorage
+      const playerId = customerId || `${playerData.phone}_${Date.now()}`
+      localStorage.setItem(`player_${playerId}`, JSON.stringify({
+        id: playerId,
+        ...playerData,
+        merchantId,
+        timestamp: new Date().toISOString()
+      }))
+
+      // Redirect to game gallery
+      setTimeout(() => {
+        router.push(`/play/${merchantId}/games?player=${playerId}${qrCode ? `&qrCode=${qrCode}` : ''}`)
+      }, 1000)
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      setIsLoading(false);
+      // Show error message (you might want to add a toast notification here)
+    }
   }
 
   const handleInputChange = (field: keyof PlayerData, value: string) => {
@@ -90,30 +163,55 @@ export default function PlayPage() {
 
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <div className="mb-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-3xl mx-auto mb-4">
-              <IconGift />
+        {!showRegistration && customerInfo ? (
+          <div className="text-center mb-8">
+            <div className="mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white text-3xl mx-auto mb-4">
+                <IconTrophy />
+              </div>
             </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Welcome back, {customerInfo.name}!
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300">
+              Ready to continue playing and winning more rewards?
+            </p>
+            {qrCode && (
+              <div className="mt-4 p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  <IconQrcode className="inline w-4 h-4 mr-1" />
+                  QR Code Scanned Successfully
+                </p>
+              </div>
+            )}
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Ready to Play?
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Enter your details to unlock exclusive games and win amazing prizes!
-          </p>
-        </div>
+        ) : (
+          <div className="text-center mb-8">
+            <div className="mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-3xl mx-auto mb-4">
+                <IconGift />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Ready to Play?
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300">
+              Enter your details to unlock exclusive games and win amazing prizes!
+            </p>
+          </div>
+        )}
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <IconUser className="w-5 h-5" />
-              Player Information
-            </CardTitle>
-            <CardDescription>
-              Your information helps us track your scores and prizes
-            </CardDescription>
-          </CardHeader>
+        {showRegistration && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <IconUser className="w-5 h-5" />
+                Player Information
+              </CardTitle>
+              <CardDescription>
+                Your information helps us track your scores and prizes
+              </CardDescription>
+            </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -180,6 +278,29 @@ export default function PlayPage() {
             </form>
           </CardContent>
         </Card>
+        )}
+
+        {/* Play Button for QR users */}
+        {!showRegistration && customerInfo && (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <Button
+                onClick={handleSubmit}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  "Loading Games..."
+                ) : (
+                  <>
+                    <IconTrophy className="w-4 h-4 mr-2" />
+                    Continue Playing
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Features */}
         <div className="grid grid-cols-3 gap-4 mb-6">

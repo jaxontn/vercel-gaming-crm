@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -22,6 +22,7 @@ import { LuckyDice } from "@/components/games/lucky-dice"
 import { QuickTap } from "@/components/games/quick-tap"
 import { WordPuzzle } from "@/components/games/word-puzzle"
 import { ColorMatch } from "@/components/games/color-match"
+import { callApi } from "@/lib/api-client"
 
 interface PlayerData {
   name: string
@@ -105,8 +106,10 @@ const wheelPrizes = [
 export default function GamePage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const gameId = params.gameId as string
   const merchantId = params.merchantId as string
+  const qrCode = searchParams.get('qrCode')
   const [playerId, setPlayerId] = useState<string | null>(null)
 
   const [playerData, setPlayerData] = useState<PlayerData | null>(null)
@@ -122,9 +125,8 @@ export default function GamePage() {
   // Handle client-side hydration
   useEffect(() => {
     setIsClient(true)
-    const searchParams = new URLSearchParams(window.location.search)
     setPlayerId(searchParams.get("player"))
-  }, [])
+  }, [searchParams])
 
   useEffect(() => {
     if (playerId && isClient) {
@@ -190,7 +192,7 @@ export default function GamePage() {
     }, 4000)
   }
 
-  const handlePointsEarned = (points: number) => {
+  const handlePointsEarned = async (points: number) => {
     // Update player points
     if (playerData && points > 0 && isClient && playerId) {
       const newTotalPoints = (playerData.totalPoints || 0) + points
@@ -202,6 +204,26 @@ export default function GamePage() {
 
       localStorage.setItem(`player_${playerId}`, JSON.stringify(updatedData))
       setPlayerData(updatedData)
+
+      // Mark QR code as used if this game was accessed via QR code
+      if (qrCode && playerData.id) {
+        try {
+          await callApi('POST', '/qr_usage/mark_used', {
+            uniqueId: qrCode,
+            customerId: playerData.id,
+            playerInfo: {
+              name: playerData.name,
+              phone: playerData.phone,
+              email: playerData.email || '',
+              instagram: playerData.instagram || ''
+            },
+            pointsEarned: points
+          });
+          console.log('QR code marked as used');
+        } catch (error) {
+          console.error('Failed to mark QR code as used:', error);
+        }
+      }
     }
   }
 

@@ -48,26 +48,26 @@
 - [x] Create `api/v1/request/modules/qr_campaigns/` module
   - [x] `main.php` - Main class with run() method
   - [x] `create.php` - Create new QR campaign (POST)
-  - [ ] `list.php` - List QR campaigns (GET via POST)
-  - [ ] `read.php` - Get single QR campaign
-  - [ ] `update.php` - Update QR campaign
-  - [ ] `delete.php` - Delete QR campaign (soft delete)
+  - [x] `list.php` - List QR campaigns (GET via POST)
+  - [x] `read.php` - Get single QR campaign
+  - [x] `update.php` - Update QR campaign
+  - [x] `delete.php` - Delete QR campaign (soft delete)
   - [x] `generate.php` - Generate unique QR code
 
 - [x] Create `api/v1/request/modules/qr_usage/` module
   - [x] `main.php` - Main class with run() method
   - [x] `validate.php` - Validate QR code before use
   - [x] `mark_used.php` - Mark QR as used after game
-  - [ ] `check_status.php` - Check QR status
+  - [x] `check_status.php` - Check QR status
 
-- [ ] Update `api/v1/request/modules/profile_customer/` module (existing)
-  - [ ] Add `upsert.php` - Create/update customer record
-  - [ ] Add `find_by_phone.php` - Find customer by phone number
-  - [ ] Note: profile_customer module already exists
+- [x] Update `api/v1/request/modules/profile_customer/` module (existing)
+  - [x] Add `upsert.php` - Create/update customer record
+  - [x] Add `find_by_phone.php` - Find customer by phone number
+  - [x] Note: profile_customer module already exists
 
-- [ ] Create `api/v1/request/modules/games_catalog/` module (if not exists)
-  - [ ] `list.php` - List available games for merchant
-  - [ ] `read.php` - Get game details
+- [x] Create `api/v1/request/modules/games_catalog/` module (if not exists)
+  - [x] `list.php` - List available games for merchant
+  - [x] `read.php` - Get game details
 
 ### Frontend API Integration
 - [x] Update `lib/api-client.ts` to include QR code functions
@@ -80,11 +80,11 @@
 ## Phase 2: Frontend Updates (Next.js App Router)
 
 ### QR Code Creation Dialog Enhancement
-- [ ] Update `app/dashboard/qr-codes/page.tsx` dialog
-  - [ ] Replace mock data with real API calls
-  - [ ] Fetch available games using `callApi('merchant_games', 'list')`
-  - [ ] Display games from games_catalog table
-  - [ ] Show game icons (emoji from icon field)
+- [x] Update `app/dashboard/qr-codes/page.tsx` dialog
+  - [x] Replace mock data with real API calls
+  - [x] Fetch available games using `callApi('merchant_games', 'list')`
+  - [x] Display games from games_catalog table
+  - [x] Show game icons (emoji from icon field)
 
 - [ ] Add game-specific settings panel
   - [ ] Use game_settings from database for defaults
@@ -92,41 +92,40 @@
   - [ ] Time limit input for applicable games
   - [ ] Custom reward points multiplier
 
-- [ ] Add one-time use toggle
-  - [ ] Checkbox component for isOneTimeUse
-  - [ ] Conditional maxUses input field
-  - [ ] Update form validation
+- [x] Add one-time use toggle
+  - [x] Button toggle for isOneTimeUse
+  - [x] Conditional maxUses input field
+  - [x] Update form validation
 
-- [ ] Add expiration date picker
-  - [ ] Use existing UI date picker
-  - [ ] Optional field with clear button
-  - [ ] Min date validation (today)
+- [x] Add expiration date picker
+  - [x] Use existing UI date picker
+  - [x] Optional field with clear button
+  - [x] Min date validation (today)
 
-- [ ] Update create QR code function
-  - [ ] Use `callApi('qr_campaigns', 'create')`
-  - [ ] After successful creation, call `callApi('qr_campaigns', 'generate')`
-  - [ ] Display generated QR code URL
+- [x] Update create QR code function
+  - [x] Use `callApi('qr_campaigns', 'create')`
+  - [x] After successful creation, call `callApi('qr_campaigns', 'generate')`
+  - [x] Display generated QR code URL
 
 ### QR Codes Table Updates
-- [ ] Add game column to table
-  - [ ] Display game_name from games_catalog
-  - [ ] Show game icon from icon field
+- [x] Add game column to table
+  - [x] Display game_name from games_catalog
+  - [x] Show game icon from icon field
   - [ ] Use game badge colors based on category
 
-- [ ] Add usage status column
-  - [ ] Show "currentUses/maxUses" for multi-use
-  - [ ] Show "Used/Unused" for one-time codes
-  - [ ] Progress bar component for usage
+- [x] Add usage status column
+  - [x] Show "currentUses/maxUses" for multi-use
+  - [x] Show "Used/Unused" for one-time codes
+  - [x] Badge component for usage type
 
-- [ ] Add visual indicators
-  - [ ] Badge for unused (green)
-  - [ ] Badge for used (red)
-  - [ ] Badge for expired (gray)
+- [x] Add visual indicators
+  - [x] Badge for status (active/paused/expired)
+  - [x] Usage count display
 
 - [ ] Update actions menu
   - [ ] Add "View Analytics" navigation
   - [ ] Add "Duplicate QR Code" feature
-  - [ ] Keep existing download/copy features
+  - [x] Keep existing download/copy features
 
 ### Game Selection Component
 - [ ] Create `components/GameSelector.tsx`
@@ -158,39 +157,39 @@
 ## Phase 3: Game Integration (App Router)
 
 ### QR Code Validation Flow
-- [ ] Create `app/validate/[uniqueId]/page.tsx`
-  - [ ] Call `/api/qr-codes/validate/[uniqueId]`
-  - [ ] Loading spinner while checking
-  - [ ] Show error page if invalid (not found, used, expired)
-  - [ ] If valid, redirect to player registration page with QR context
+- [x] Create `app/validate/[uniqueId]/page.tsx`
+  - [x] Call `/api/qr-codes/validate/[uniqueId]`
+  - [x] Loading spinner while checking
+  - [x] Show error page if invalid (not found, used, expired)
+  - [x] If valid, redirect to player registration page with QR context
 
-- [ ] Create `app/play/qr-register/[uniqueId]/page.tsx`
-  - [ ] Create new registration page specifically for QR codes
-  - [ ] Reuse existing player form design from `/play/[merchantId]/page.tsx`
-  - [ ] Include fields: Full Name, Phone Number, Instagram (optional)
-  - [ ] Add QR code context display (show which game they'll play)
-  - [ ] Store QR uniqueId in form state
-  - [ ] On submit, create/update customer record with QR association
-  - [ ] Redirect to `/play/[merchantId]/[gameId]?qr=[uniqueId]`
+- [x] Create `app/play/qr-register/[uniqueId]/page.tsx`
+  - [x] Create new registration page specifically for QR codes
+  - [x] Reuse existing player form design from `/play/[merchantId]/page.tsx`
+  - [x] Include fields: Full Name, Phone Number, Instagram (optional)
+  - [x] Add QR code context display (show which game they'll play)
+  - [x] Store QR uniqueId in form state
+  - [x] On submit, create/update customer record with QR association
+  - [x] Redirect to `/play/[merchantId]/[gameId]?qr=[uniqueId]`
 
-- [ ] Update player info collection API
-  - [ ] Use existing `callApi('profile_customer', 'upsert')`
-  - [ ] Pass QR usage ID to link customer
-  - [ ] Handle new vs existing customer logic
+- [x] Update player info collection API
+  - [x] Use existing `callApi('profile_customer', 'upsert')`
+  - [x] Pass QR usage ID to link customer
+  - [x] Handle new vs existing customer logic
 
-- [ ] Create QR game preview component
-  - [ ] Show game data from games_catalog
-  - [ ] Display instructions field
-  - [ ] Show potential rewards from game_prizes
-  - [ ] "Start Game" button to game page
+- [x] Create QR game preview component
+  - [x] Show game data from games_catalog
+  - [x] Display instructions field
+  - [x] Show potential rewards from game_prizes
+  - [x] "Start Game" button to game page
 
 ### Game Play Page Updates
-- [ ] Update `app/play/[merchantId]/game/[gameId]/page.tsx`
-  - [ ] Check for QR code in query params
-  - [ ] If QR present, verify customer is registered
-  - [ ] Pass game_settings from qr_campaigns
-  - [ ] Pass customer info from registration
-  - [ ] Handle one-time use restriction
+- [x] Update `app/play/[merchantId]/game/[gameId]/page.tsx`
+  - [x] Check for QR code in query params
+  - [x] If QR present, verify customer is registered
+  - [x] Pass game_settings from qr_campaigns
+  - [x] Pass customer info from registration
+  - [x] Handle one-time use restriction
 
 - [ ] Add QR code middleware check
   - [ ] Create middleware.ts to check QR status
@@ -199,12 +198,12 @@
   - [ ] Redirect to registration if missing customer info
   - [ ] Create game_sessions record on game start
 
-- [ ] Mark QR code after completion
-  - [ ] Call `callApi('qr_usage', 'mark_used')`
-  - [ ] Include final score and customer ID
-  - [ ] Update qr_campaigns.currentUses
-  - [ ] Update customer.games_played and total_points
-  - [ ] Create loyalty_transactions entry if points awarded
+- [x] Mark QR code after completion
+  - [x] Call `callApi('qr_usage', 'mark_used')`
+  - [x] Include final score and customer ID
+  - [x] Update qr_campaigns.currentUses
+  - [x] Update customer.games_played and total_points
+  - [x] Create loyalty_transactions entry if points awarded
 
 ### QR Code Status Pages
 - [ ] Create `app/play/qr-used/page.tsx`

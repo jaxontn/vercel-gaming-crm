@@ -132,6 +132,11 @@ class APIClient {
       const responseData = await response.json();
       console.log(`<-- Response [${requestId}]`, responseData);
 
+      // Extract the actual data from the nested response structure
+      if (responseData && responseData.data && responseData.data.status) {
+        return responseData.data;
+      }
+
       return responseData;
 
     } catch (error) {
@@ -379,8 +384,9 @@ export const findCustomerByPhone = (phone: string, merchantId: string) => {
 };
 
 // Games catalog functions
-export const getMerchantGames = (merchantId: string) => {
-  return callApi('merchant_games', 'list', { merchant_id: merchantId });
+export const getMerchantGames = () => {
+  // merchant_games gets merchant_id from authentication session, not from data
+  return callApi('merchant_games', 'list', {});
 };
 
 export const getGameDetails = (gameId: string) => {
