@@ -9,13 +9,13 @@ interface Game {
   description: string
   category: string
   icon: string
-  is_enabled: boolean
-  daily_play_limit: number
-  total_sessions: number
-  avg_score: number
+  is_enabled: boolean | string
+  daily_play_limit: number | string
+  total_sessions: number | string
+  avg_score: number | string
   completion_rate: number
-  prizes_count: number
-  achievements_count: number
+  prizes_count: number | string
+  achievements_count: number | string
 }
 
 interface GameGridProps {
