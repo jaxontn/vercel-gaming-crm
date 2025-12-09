@@ -326,3 +326,63 @@ export const clearApiAuth = () => {
 export const isApiAuthenticated = () => {
   return apiClient.isAuthenticated();
 };
+
+// QR Code API functions
+export const generateQRCode = (campaignId: string) => {
+  return callApi('qr_campaigns', 'generate', { campaignId });
+};
+
+export const validateQRCode = (uniqueId: string) => {
+  return callApi('qr_usage', 'validate', { uniqueId });
+};
+
+export const markQRUsed = (uniqueId: string, customerId: string, playerInfo: any, pointsEarned: number = 0) => {
+  return callApi('qr_usage', 'mark_used', {
+    uniqueId,
+    customerId,
+    playerInfo,
+    pointsEarned
+  });
+};
+
+export const getQRCampaigns = (filters: Record<string, unknown> = {}) => {
+  return callApi('qr_campaigns', 'list', filters);
+};
+
+export const createQRCampaign = (campaignData: any) => {
+  return callApi('qr_campaigns', 'create', campaignData);
+};
+
+export const updateQRCampaign = (campaignId: string, campaignData: any) => {
+  return callApi('qr_campaigns', 'update', { id: campaignId, ...campaignData });
+};
+
+export const deleteQRCampaign = (campaignId: string) => {
+  return callApi('qr_campaigns', 'delete', { id: campaignId });
+};
+
+export const getQRCampaign = (campaignId: string) => {
+  return callApi('qr_campaigns', 'read', { id: campaignId });
+};
+
+export const checkQRStatus = (uniqueId: string) => {
+  return callApi('qr_usage', 'check_status', { uniqueId });
+};
+
+// Customer functions for QR flow
+export const upsertCustomer = (customerData: any) => {
+  return callApi('profile_customer', 'upsert', customerData);
+};
+
+export const findCustomerByPhone = (phone: string, merchantId: string) => {
+  return callApi('profile_customer', 'find_by_phone', { phone, merchant_id: merchantId });
+};
+
+// Games catalog functions
+export const getMerchantGames = (merchantId: string) => {
+  return callApi('merchant_games', 'list', { merchant_id: merchantId });
+};
+
+export const getGameDetails = (gameId: string) => {
+  return callApi('games_catalog', 'read', { id: gameId });
+};
