@@ -14,12 +14,14 @@ import {
 
 export function NavMain({
   items,
+  pathname,
 }: {
   items: {
     title: string
     url: string
     icon?: Icon
   }[]
+  pathname?: string
 }) {
   return (
     <SidebarGroup>
@@ -28,14 +30,14 @@ export function NavMain({
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
               tooltip="Quick Create"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+              className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-700 hover:to-fuchsia-700 min-w-8 duration-200 ease-linear shadow-lg shadow-violet-500/25"
             >
               <IconCirclePlusFilled />
               <span>Quick Create</span>
             </SidebarMenuButton>
             <Button
               size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
+              className="size-8 group-data-[collapsible=icon]:opacity-0 border-violet-200 text-violet-600 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-300"
               variant="outline"
             >
               <IconMail />
@@ -46,7 +48,11 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title} asChild>
+              <SidebarMenuButton
+                tooltip={item.title}
+                asChild
+                className={pathname === item.url ? "bg-violet-100 text-violet-900 hover:bg-violet-200" : ""}
+              >
                 <Link href={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>

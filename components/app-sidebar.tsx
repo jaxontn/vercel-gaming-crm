@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   IconBulb,
   IconChartBar,
@@ -99,6 +100,7 @@ const transformGamesToNavClouds = (games: GameData[]) => {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
   const [games, setGames] = React.useState<GameData[]>([])
   const [loading, setLoading] = React.useState(true)
 
@@ -223,7 +225,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [games])
 
   // Enhanced NavClouds component that supports badges
-  const NavCloudsWithBadges = ({ items }: { items: typeof navClouds }) => {
+  const NavCloudsWithBadges = ({ items, pathname }: { items: typeof navClouds; pathname: string }) => {
     console.log('NavCloudsWithBadges - loading:', loading, 'items:', items) // Debug log
     return (
       <div className="relative">
@@ -232,7 +234,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <IconLoader2 className="h-4 w-4 animate-spin" />
           </div>
         )}
-        <NavClouds items={items} />
+        <NavClouds items={items} pathname={pathname} />
       </div>
     )
   }
@@ -244,7 +246,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:!p-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-700 hover:to-fuchsia-700 shadow-lg shadow-violet-500/25"
             >
               <Link href="/dashboard">
                 <IconBulb className="!size-5" />
@@ -255,8 +257,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavCloudsWithBadges items={navClouds} />
+        <NavMain items={data.navMain} pathname={pathname} />
+        <NavCloudsWithBadges items={navClouds} pathname={pathname} />
         {/* <NavDocuments items={data.documents} /> */}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
