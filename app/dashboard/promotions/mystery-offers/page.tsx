@@ -94,7 +94,7 @@ interface MysteryReveal {
   revealDate: string
   pointsSpent: number
   rewardValue: string
-  rarity: string
+  rarity: "common" | "rare" | "epic" | "legendary"
 }
 
 const mockMysteryOffers: MysteryOffer[] = [
