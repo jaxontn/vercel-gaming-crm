@@ -41,7 +41,15 @@ interface LeaderboardEntry {
 
 // Mock leaderboard data (in production, this would come from your database)
 const generateMockLeaderboard = (currentPlayerPhone: string): LeaderboardEntry[] => {
-  const mockPlayers = [
+  type MockPlayer = {
+    phone: string
+    name: string
+    totalPoints: number
+    gamesPlayed: number
+    instagram?: string
+  }
+
+  const mockPlayers: MockPlayer[] = [
     { phone: "5551234567", name: "Sarah Johnson", totalPoints: 2850, gamesPlayed: 45, instagram: "@sarahj" },
     { phone: "5559876543", name: "Mike Chen", totalPoints: 2720, gamesPlayed: 38, instagram: "@mikechen" },
     { phone: "5552468135", name: "Emma Davis", totalPoints: 2650, gamesPlayed: 42 },
@@ -55,7 +63,7 @@ const generateMockLeaderboard = (currentPlayerPhone: string): LeaderboardEntry[]
   ]
 
   // Add current player
-  const currentPlayerEntry = {
+  const currentPlayerEntry: MockPlayer = {
     phone: currentPlayerPhone,
     name: "You",
     totalPoints: Math.floor(Math.random() * 1000) + 500,
