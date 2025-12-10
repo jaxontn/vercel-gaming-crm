@@ -188,15 +188,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
           console.log('Sidebar API Response:', response) // Debug log
 
-          if (response.data?.status === 'SUCCESS' && response.data?.data?.games) {
-            console.log('Games found:', response.data.data.games) // Debug log
-            setGames(response.data.data.games)
+          if (response.status === 'SUCCESS' && response.data?.games) {
+            console.log('Games found:', response.data.games) // Debug log
+            setGames(response.data.games)
           } else {
             // No games available if API response is not successful
             console.log('No games found or API response not successful')
             console.log('Response status:', response.status)
             console.log('Response data:', response.data)
-            console.log('Response data data:', response.data?.data)
             setGames([])
           }
         } else {

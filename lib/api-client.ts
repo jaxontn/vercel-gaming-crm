@@ -392,3 +392,149 @@ export const getMerchantGames = () => {
 export const getGameDetails = (gameId: string) => {
   return callApi('games_catalog', 'read', { id: gameId });
 };
+
+// Public API functions for QR validation and customer operations
+// These use callApi but bypass authentication for public endpoints
+
+/**
+ * Public QR validation - no auth required
+ */
+export const publicValidateQRCode = async (uniqueId: string) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/qr-validate.php`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        uniqueId
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Public QR validation error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Public customer find by phone - no auth required
+ */
+export const publicFindCustomerByPhone = async (phone: string, merchantId: string) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/customer-find-by-phone-public.php`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        phone,
+        merchantId: merchantId
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Public customer find error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Public customer upsert - no auth required
+ */
+export const publicUpsertCustomer = async (customerData: {
+  merchantId: string;
+  name: string;
+  phone: string;
+  email?: string;
+  instagram?: string;
+}) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/customer-upsert-public.php`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(customerData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Public customer upsert error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Public QR code mark as used - no auth required
+ */
+export const publicMarkQRUsed = async (data: {
+  uniqueId: string;
+  customerId: string;
+  playerInfo: {
+    name: string;
+    phone: string;
+    email?: string;
+    instagram?: string;
+  };
+  pointsEarned?: number;
+}) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/qr-mark-used.php`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Public QR mark used error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Public QR status check - no auth required
+ */
+export const publicCheckQRStatus = async (uniqueId: string) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/qr-check-status.php`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        uniqueId
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Public QR status check error:', error);
+    throw error;
+  }
+};

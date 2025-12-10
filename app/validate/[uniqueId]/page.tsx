@@ -27,14 +27,37 @@ export default function QRValidationPage() {
     const validateQR = async () => {
       try {
         setIsLoading(true);
-        const response = await callApi('POST', '/qr_usage/validate', {
-          uniqueId: params.uniqueId
+        // Call public API endpoint for QR validation (no auth required)
+        const response = await fetch(`/api/qr-codes/${params.uniqueId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
         });
 
-        if (response.status === 'SUCCESS' && response.data?.valid) {
-          setQrData(response.data);
+        const responseData = await response.json();
+
+        if (responseData.status === 'SUCCESS' && responseData.data?.valid) {
+          setQrData(responseData.data);
         } else {
-          setError(response.message || 'Invalid QR code');
+          // Handle different error types by redirecting to appropriate pages
+          const errorType = responseData.data?.error_type;
+          switch (errorType) {
+            case 'USED':
+              router.push('/play/qr-used');
+              break;
+            case 'EXPIRED':
+              router.push('/play/qr-expired');
+              break;
+            case 'NOT_FOUND':
+              router.push('/play/qr-not-found');
+              break;
+            case 'INACTIVE':
+              router.push('/play/qr-expired');
+              break;
+            default:
+              setError(responseData.message || 'Invalid QR code');
+          }
         }
       } catch (err) {
         console.error('QR validation error:', err);

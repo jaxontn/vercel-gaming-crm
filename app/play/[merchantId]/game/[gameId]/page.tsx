@@ -22,12 +22,14 @@ import { LuckyDice } from "@/components/games/lucky-dice"
 import { QuickTap } from "@/components/games/quick-tap"
 import { WordPuzzle } from "@/components/games/word-puzzle"
 import { ColorMatch } from "@/components/games/color-match"
-import { callApi } from "@/lib/api-client"
+import { callApi, publicMarkQRUsed, publicCheckQRStatus } from "@/lib/api-client"
 
 interface PlayerData {
+  id?: string
   name: string
   phone: string
   instagram?: string
+  email?: string
   merchantId: string
   timestamp: string
   totalPoints: number
@@ -119,14 +121,40 @@ export default function GamePage() {
   const [gamesPlayedToday, setGamesPlayedToday] = useState(0)
   const [hasSpun, setHasSpun] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const [qrAlreadyUsed, setQrAlreadyUsed] = useState(false)
+  const [qrStatusChecked, setQrStatusChecked] = useState(false)
 
   const game = games[gameId] || games["spin-wheel"]
 
   // Handle client-side hydration
   useEffect(() => {
     setIsClient(true)
-    setPlayerId(searchParams.get("player"))
-  }, [searchParams])
+    const playerParam = searchParams.get("player")
+    setPlayerId(playerParam)
+
+    // If player is a customer ID (from QR flow), try to get customer info
+    if (playerParam && qrCode) {
+      const customerInfo = localStorage.getItem('customerInfo')
+      if (customerInfo) {
+        const customer = JSON.parse(customerInfo)
+        // If the player ID matches the customer ID, store player data with the correct format
+        if (customer.id === playerParam) {
+          const playerDataToStore = {
+            id: customer.id,
+            name: customer.name,
+            phone: customer.phone,
+            instagram: customer.instagram || '',
+            email: customer.email || '',
+            merchantId: merchantId,
+            timestamp: new Date().toISOString(),
+            totalPoints: 0,
+            gamesPlayed: []
+          }
+          localStorage.setItem(`player_${playerParam}`, JSON.stringify(playerDataToStore))
+        }
+      }
+    }
+  }, [searchParams, qrCode, merchantId])
 
   useEffect(() => {
     if (playerId && isClient) {
@@ -144,6 +172,42 @@ export default function GamePage() {
       }
     }
   }, [playerId, gameId, isClient])
+
+  // Check QR status when page loads
+  useEffect(() => {
+    if (qrCode && isClient && !qrStatusChecked) {
+      const checkQRStatus = async () => {
+        try {
+          const result = await publicCheckQRStatus(qrCode);
+          if (result.status === 'SUCCESS') {
+            if (result.data.isUsed) {
+              setQrAlreadyUsed(true);
+            } else if (playerData?.id) {
+              // Mark as used if not already used
+              await publicMarkQRUsed({
+                uniqueId: qrCode,
+                customerId: playerData.id!,
+                playerInfo: {
+                  name: playerData.name,
+                  phone: playerData.phone,
+                  email: playerData.email || '',
+                  instagram: playerData.instagram || ''
+                },
+                pointsEarned: 0
+              });
+              console.log('QR code marked as used on page load');
+            }
+          }
+          setQrStatusChecked(true);
+        } catch (error) {
+          console.error('Failed to check QR status:', error);
+          setQrStatusChecked(true);
+        }
+      };
+
+      checkQRStatus();
+    }
+  }, [qrCode, isClient, qrStatusChecked, playerData]);
 
   const handleSpin = () => {
     if (isSpinning || hasSpun || !isClient) return
@@ -205,25 +269,7 @@ export default function GamePage() {
       localStorage.setItem(`player_${playerId}`, JSON.stringify(updatedData))
       setPlayerData(updatedData)
 
-      // Mark QR code as used if this game was accessed via QR code
-      if (qrCode && playerData.id) {
-        try {
-          await callApi('POST', '/qr_usage/mark_used', {
-            uniqueId: qrCode,
-            customerId: playerData.id,
-            playerInfo: {
-              name: playerData.name,
-              phone: playerData.phone,
-              email: playerData.email || '',
-              instagram: playerData.instagram || ''
-            },
-            pointsEarned: points
-          });
-          console.log('QR code marked as used');
-        } catch (error) {
-          console.error('Failed to mark QR code as used:', error);
-        }
-      }
+      // QR code is already marked as used when page loads, no need to mark again here
     }
   }
 
@@ -242,14 +288,59 @@ export default function GamePage() {
     return phone
   }
 
-  // Show a consistent loading state during hydration
-  if (!isClient || !playerData) {
+  // Show a consistent loading state during hydration or QR status check
+  if (!isClient || !playerData || (qrCode && !qrStatusChecked)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading game...</p>
+          <p className="text-gray-600 dark:text-gray-300">
+            {qrCode && !qrStatusChecked ? 'Checking game status...' : 'Loading game...'}
+          </p>
         </div>
+      </div>
+    )
+  }
+
+  // Show thank you message if QR was already used
+  if (qrCode && qrAlreadyUsed) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white text-4xl mx-auto mb-6">
+              <IconTrophy />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Thank You for Playing!
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              You've already played this game. All games can only be played once per QR code.
+            </p>
+            <div className="space-y-3">
+              <div className="p-4 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  <IconGift className="inline w-4 h-4 mr-1" />
+                  Game: {game.name}
+                </p>
+              </div>
+              <div className="p-4 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Player: {playerData.name}
+                </p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">
+                  {formatPhoneNumber(playerData.phone)}
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => router.push(`/play/${merchantId}/scan`)}
+              className="w-full mt-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            >
+              Scan Another QR Code
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { IconQrcode, IconGift, IconTrophy, IconUser, IconPhone, IconBrandInstagram, AlertCircle } from "@tabler/icons-react"
+import { IconQrcode, IconGift, IconTrophy, IconUser, IconPhone, IconBrandInstagram } from "@tabler/icons-react"
 import { callApi } from "@/lib/api-client"
 
 interface PlayerData {
@@ -28,7 +28,7 @@ interface CustomerInfo {
 
 // Single merchant data (in production, this would come from your database/config)
 const merchantData = {
-  name: "Your Store",
+  name: "Merchant Game",
   logo: "🏪",
   brandColor: "bg-purple-500"
 }
@@ -212,78 +212,78 @@ export default function PlayPage() {
                 Your information helps us track your scores and prizes
               </CardDescription>
             </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={playerData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="relative mt-1">
-                  <IconPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Full Name</Label>
                   <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1 (555) 123-4567"
-                    value={playerData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Used for leaderboard identification (XXX-XXX-1234)
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="instagram">Instagram Handle (Optional)</Label>
-                <div className="relative mt-1">
-                  <IconBrandInstagram className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    id="instagram"
+                    id="name"
                     type="text"
-                    placeholder="@yourusername"
-                    value={playerData.instagram}
-                    onChange={(e) => handleInputChange("instagram", e.target.value)}
-                    className="pl-10"
+                    placeholder="Enter your full name"
+                    value={playerData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    required
+                    className="mt-1"
                   />
                 </div>
-              </div>
 
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                disabled={isLoading || !playerData.name || !playerData.phone}
-              >
-                {isLoading ? (
-                  "Loading Games..."
-                ) : (
-                  <>
-                    <IconTrophy className="w-4 h-4 mr-2" />
-                    Start Playing
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <div className="relative mt-1">
+                    <IconPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      value={playerData.phone}
+                      onChange={(e) => handleInputChange("phone", e.target.value)}
+                      required
+                      className="pl-10"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Used for leaderboard identification (XXX-XXX-1234)
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="instagram">Instagram Handle (Optional)</Label>
+                  <div className="relative mt-1">
+                    <IconBrandInstagram className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      id="instagram"
+                      type="text"
+                      placeholder="@yourusername"
+                      value={playerData.instagram}
+                      onChange={(e) => handleInputChange("instagram", e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  disabled={isLoading || !playerData.name || !playerData.phone}
+                >
+                  {isLoading ? (
+                    "Loading Games..."
+                  ) : (
+                    <>
+                      <IconTrophy className="w-4 h-4 mr-2" />
+                      Start Playing
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         )}
 
         {/* Play Button for QR users */}
         {!showRegistration && customerInfo && (
           <Card className="mb-6">
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 space-y-3">
               <Button
                 onClick={handleSubmit}
                 className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
@@ -297,6 +297,14 @@ export default function PlayPage() {
                     Continue Playing
                   </>
                 )}
+              </Button>
+              <Button
+                onClick={() => router.push(`/play/${merchantId}/scan`)}
+                variant="outline"
+                className="w-full"
+              >
+                <IconQrcode className="w-4 h-4 mr-2" />
+                Scan QR Code
               </Button>
             </CardContent>
           </Card>

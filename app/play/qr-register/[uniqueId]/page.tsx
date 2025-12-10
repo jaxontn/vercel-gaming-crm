@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { callApi } from '@/lib/api-client';
+import { publicValidateQRCode, publicFindCustomerByPhone, publicUpsertCustomer } from '@/lib/api-client';
 import { Loader2, User, Phone, Mail, Instagram, AlertCircle, Gamepad2 } from 'lucide-react';
 
 interface RegistrationData {
@@ -14,6 +14,7 @@ interface RegistrationData {
 
 interface QRData {
   gameId: string;
+  gameCode: string;
   gameName: string;
   icon: string;
   merchantId: string;
@@ -37,14 +38,13 @@ export default function QRRegisterPage() {
   useEffect(() => {
     const validateQR = async () => {
       try {
-        const response = await callApi('POST', '/qr_usage/validate', {
-          uniqueId: params.uniqueId
-        });
+        // Use public API function for QR validation (no authentication required)
+        const data = await publicValidateQRCode(params.uniqueId as string);
 
-        if (response.status === 'SUCCESS' && response.data?.valid) {
-          setQrData(response.data);
+        if (data.status === 'SUCCESS' && data.data?.valid) {
+          setQrData(data.data);
         } else {
-          setError(response.message || 'Invalid QR code');
+          setError(data.message || 'Invalid QR code');
         }
       } catch (err) {
         console.error('QR validation error:', err);
@@ -79,31 +79,27 @@ export default function QRRegisterPage() {
     setError(null);
 
     try {
-      // First, find or create the customer
-      const customerResponse = await callApi('POST', '/customers/find_by_phone', {
-        phone: formData.phone,
-        merchantId: qrData?.merchantId
-      });
-
+      // First, find or create the customer using public API functions
+      const findData = await publicFindCustomerByPhone(formData.phone, qrData?.merchantId || '');
       let customerId: string;
 
-      if (customerResponse.status === 'SUCCESS' && customerResponse.data) {
+      if (findData.status === 'SUCCESS' && findData.data) {
         // Customer exists
-        customerId = customerResponse.data.id;
+        customerId = findData.data.id;
       } else {
         // Create new customer
-        const createResponse = await callApi('POST', '/customers/upsert', {
-          merchantId: qrData?.merchantId,
+        const createData = await publicUpsertCustomer({
+          merchantId: qrData?.merchantId || '',
           name: formData.name,
           phone: formData.phone,
           email: formData.email || '',
           instagram: formData.instagram || ''
         });
 
-        if (createResponse.status !== 'SUCCESS') {
-          throw new Error(createResponse.message || 'Failed to create customer');
+        if (createData.status !== 'SUCCESS') {
+          throw new Error(createData.message || 'Failed to create customer');
         }
-        customerId = createResponse.data.id;
+        customerId = createData.data.id;
       }
 
       // Store customer info in localStorage for the game
@@ -112,8 +108,29 @@ export default function QRRegisterPage() {
         ...formData
       }));
 
-      // Redirect to the game page
-      router.push(`/play/${qrData?.merchantId}?qrCode=${params.uniqueId}`);
+      // Store QR game data
+      if (qrData) {
+        localStorage.setItem('qrGameData', JSON.stringify(qrData));
+      }
+
+      // Map database game codes to frontend routes
+      const gameCodeMap: Record<string, string> = {
+        'spin-win': 'spin-wheel',
+        'memory-match': 'memory-cards',
+        'lucky-dice': 'lucky-dice',
+        'quick-tap': 'quick-tap',
+        'word-puzzle': 'word-puzzle',
+        'color-match': 'color-match'
+      };
+
+      // Redirect directly to the specific game
+      if (qrData?.gameCode) {
+        const frontendGameCode = gameCodeMap[qrData.gameCode] || qrData.gameCode;
+        router.push(`/play/${qrData?.merchantId}/game/${frontendGameCode}?player=${customerId}&qrCode=${params.uniqueId}`);
+      } else {
+        // Fallback: redirect to the game selection
+        router.push(`/play/${qrData?.merchantId}/games?player=${customerId}&qrCode=${params.uniqueId}`);
+      }
     } catch (err) {
       console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
