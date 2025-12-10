@@ -19,10 +19,17 @@ class APIClient {
     this.server_domain = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
     this.api_domain = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
 
+    console.log('[API CLIENT] Initializing with URL:', apiUrl);
+    console.log('[API CLIENT] Server domain:', this.server_domain);
+
     // Initialize session from sessionStorage only
     if (typeof window !== 'undefined') {
       this.userId = sessionStorage.getItem('id');
       this.secret = sessionStorage.getItem('session_secret');
+      console.log('[API CLIENT] Initial auth state:', {
+        userId: this.userId,
+        hasSecret: !!this.secret
+      });
     }
   }
 
@@ -63,15 +70,24 @@ class APIClient {
       // Special handling for login - no auth required
       const isLoginCall = module === 'users' && method === 'login';
 
+      console.log(`[API DEBUG] Starting callApi: ${module}.${method}`);
+      console.log(`[API DEBUG] Server domain: ${this.server_domain}`);
+
       // Check authentication - if not set, try to get from sessionStorage
       if (!this.userId || !this.secret) {
+        console.log('[API DEBUG] No auth in memory, checking sessionStorage...');
         if (typeof window !== 'undefined') {
           this.userId = sessionStorage.getItem('id');
           this.secret = sessionStorage.getItem('session_secret');
+          console.log('[API DEBUG] Retrieved from sessionStorage:');
+          console.log('  - userId:', this.userId);
+          console.log('  - hasSecret:', !!this.secret);
+          console.log('  - hasUserData:', !!sessionStorage.getItem('user_data'));
         }
 
         // Only throw error if this is not a login call
         if (!isLoginCall && (!this.userId || !this.secret)) {
+          console.error('[API ERROR] Authentication required - User ID or secret not found');
           throw new Error("Authentication required - User ID or secret not found");
         }
       }

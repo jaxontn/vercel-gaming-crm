@@ -98,7 +98,7 @@ interface QRCampaign {
 }
 
 export default function QRCodesPage() {
-  const { user } = useAuth()
+  const { user, getMerchantId } = useAuth()
   const [campaigns, setCampaigns] = useState<QRCampaign[]>([])
   const [games, setGames] = useState<Game[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -117,16 +117,25 @@ export default function QRCodesPage() {
   // Load QR campaigns
   useEffect(() => {
     console.log('QR Codes useEffect - user:', user)
-    // Only load data if user is authenticated
-    if (user && user.merchantId) {
-      console.log('User is authenticated, loading data...')
+    console.log('User keys:', user ? Object.keys(user) : 'No user')
+
+    const merchantId = getMerchantId();
+    console.log('Merchant ID from helper:', merchantId)
+
+    // Only load data if user is authenticated and has a merchant ID
+    if (user && merchantId) {
+      console.log('User is authenticated with merchant ID, loading data...')
       loadQRCampaigns()
       loadMerchantGames()
     } else {
       console.log('User not authenticated or missing merchantId')
+      console.log('SessionStorage contents:')
+      console.log('  - id:', sessionStorage.getItem('id'))
+      console.log('  - session_secret exists:', !!sessionStorage.getItem('session_secret'))
+      console.log('  - user_data:', sessionStorage.getItem('user_data'))
       setIsLoading(false)
     }
-  }, [user])
+  }, [user, getMerchantId])
 
   const loadQRCampaigns = async () => {
     try {

@@ -7,7 +7,9 @@ interface User {
   id: string;
   email: string;
   name: string;
+  // Support both camelCase (frontend) and snake_case (backend) conventions
   merchantId?: string;
+  merchant_id?: string;
   role?: string;
   businessName?: string;
 }
@@ -248,5 +250,15 @@ export function useAuth() {
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context;
+
+  // Add helper to get merchant ID regardless of field naming convention
+  const getMerchantId = () => {
+    if (!context.user) return null;
+    return context.user.merchantId || context.user.merchant_id || null;
+  };
+
+  return {
+    ...context,
+    getMerchantId
+  };
 }
