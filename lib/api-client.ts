@@ -14,8 +14,10 @@ class APIClient {
 
   constructor() {
     // Load server configuration
-    this.server_domain = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1';
-    this.api_domain = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1';
+    // Remove trailing slash to prevent double slashes
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1';
+    this.server_domain = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    this.api_domain = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
 
     // Initialize session from sessionStorage only
     if (typeof window !== 'undefined') {
