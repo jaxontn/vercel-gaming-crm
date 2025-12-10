@@ -32,7 +32,7 @@ export function QuickTap({ onPointsEarned, playerName }: QuickTapProps) {
   const [missedTaps, setMissedTaps] = useState(0)
   const [isClient, setIsClient] = useState(false)
   const gameAreaRef = useRef<HTMLDivElement>(null)
-  const animationFrameRef = useRef<number>()
+  const animationFrameRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number>(0)
 
   // Handle client-side hydration

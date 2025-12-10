@@ -226,7 +226,7 @@ export function QRScanner({ onScanSuccess, merchantId }: QRScannerProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!isScanning && hasPermission !== false && (
+          {!isScanning && (hasPermission === true || hasPermission === null) && (
             <div className="text-center space-y-4">
               <Camera className="w-16 h-16 text-gray-400 mx-auto" />
               <Button onClick={startCamera} size="lg" className="w-full" disabled={isStartingCamera}>

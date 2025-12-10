@@ -51,7 +51,7 @@ export function ColorMatch({ onPointsEarned, playerName }: ColorMatchProps) {
   const [streak, setStreak] = useState(0)
   const [maxStreak, setMaxStreak] = useState(0)
   const [isClient, setIsClient] = useState(false)
-  const timerRef = useRef<NodeJS.Timeout>()
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Handle client-side hydration
   useEffect(() => {

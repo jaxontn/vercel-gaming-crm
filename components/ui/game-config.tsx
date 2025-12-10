@@ -429,7 +429,7 @@ export function GameConfig({ gameId, gameName, gameCode, initialConfig, onSave }
   }
 
   const updateConfig = (key: string, value: any) => {
-    setConfig(prev => ({
+    setConfig((prev: any) => ({
       ...prev,
       [key]: value
     }))
