@@ -118,12 +118,12 @@ export default function QRCodesPage() {
   useEffect(() => {
     console.log('QR Codes useEffect - user:', user)
     // Only load data if user is authenticated
-    if (user && user.merchant_id) {
+    if (user && user.merchantId) {
       console.log('User is authenticated, loading data...')
       loadQRCampaigns()
       loadMerchantGames()
     } else {
-      console.log('User not authenticated or missing merchant_id')
+      console.log('User not authenticated or missing merchantId')
       setIsLoading(false)
     }
   }, [user])
