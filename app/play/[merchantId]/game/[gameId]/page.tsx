@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import {
-  IconArrowLeft,
   IconTrophy,
   IconCoin,
   IconSparkles,
@@ -273,14 +272,7 @@ export default function GamePage() {
     }
   }
 
-  const handleBackToGallery = () => {
-    if (playerId) {
-      router.push(`/play/${merchantId}/games?player=${playerId}`)
-    } else {
-      router.push(`/play/${merchantId}/games`)
-    }
-  }
-
+  
   const formatPhoneNumber = (phone: string) => {
     if (phone.length >= 7) {
       return `XXX-XXX-${phone.slice(-4)}`
@@ -351,23 +343,13 @@ export default function GamePage() {
       <div className="bg-white dark:bg-gray-900 shadow-sm border-b">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBackToGallery}
-                className="p-2"
-              >
-                <IconArrowLeft className="w-4 h-4" />
-              </Button>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {game.name}
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {game.description}
-                </p>
-              </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+                {game.name}
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {game.description}
+              </p>
             </div>
             <div className="text-right">
               <div className="flex items-center gap-2">
