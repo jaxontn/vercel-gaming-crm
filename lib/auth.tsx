@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -252,10 +252,11 @@ export function useAuth() {
   }
 
   // Add helper to get merchant ID regardless of field naming convention
-  const getMerchantId = () => {
+  // Use useCallback to make it stable
+  const getMerchantId = useCallback(() => {
     if (!context.user) return null;
     return context.user.merchantId || context.user.merchant_id || null;
-  };
+  }, [context.user]);
 
   return {
     ...context,
