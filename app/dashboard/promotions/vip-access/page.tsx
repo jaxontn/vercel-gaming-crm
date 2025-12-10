@@ -69,7 +69,7 @@ interface VIPBenefit {
 
 interface VIPTier {
   id: string
-  name: string
+  name: "Silver VIP" | "Gold VIP" | "Platinum VIP"
   level: number
   icon: string
   color: string
@@ -88,7 +88,7 @@ interface VIPMember {
   name: string
   email: string
   phone: string
-  tier: string
+  tier: "Silver VIP" | "Gold VIP" | "Platinum VIP"
   joinDate: string
   totalSpent: number
   pointsEarned: number
