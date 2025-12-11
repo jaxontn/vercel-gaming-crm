@@ -23,7 +23,8 @@ export function RegisterForm({
   const { registerMerchant } = useAuth();
   const [formData, setFormData] = useState({
     business_name: '',
-    contact_name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
     password: '',
@@ -43,7 +44,7 @@ export function RegisterForm({
   };
 
   const validateForm = () => {
-    if (!formData.business_name || !formData.contact_name || !formData.email || !formData.password) {
+    if (!formData.business_name || !formData.first_name || !formData.last_name || !formData.email || !formData.phone || !formData.address || !formData.password) {
       setError('Please fill in all required fields');
       return false;
     }
@@ -82,7 +83,8 @@ export function RegisterForm({
       // Use the registerMerchant function from auth context
       await registerMerchant(
         formData.business_name,
-        formData.contact_name,
+        formData.first_name,
+        formData.last_name,
         formData.email,
         formData.phone,
         formData.password
@@ -145,7 +147,7 @@ export function RegisterForm({
 
           {/* Business Information */}
           <div className="space-y-4 mb-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
               <Field>
                 <FieldLabel htmlFor="business_name" className="text-gray-700 font-medium">Business Name *</FieldLabel>
                 <Input
@@ -161,20 +163,37 @@ export function RegisterForm({
                 />
               </Field>
 
-              <Field>
-                <FieldLabel htmlFor="contact_name" className="text-gray-700 font-medium">Contact Name *</FieldLabel>
-                <Input
-                  id="contact_name"
-                  name="contact_name"
-                  type="text"
-                  placeholder="Full name of contact person"
-                  value={formData.contact_name}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isLoading}
-                  className="h-10 border-gray-200 rounded-lg focus:border-violet-500 focus:ring-violet-500/20 transition-all"
-                />
-              </Field>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel htmlFor="first_name" className="text-gray-700 font-medium">First Name *</FieldLabel>
+                  <Input
+                    id="first_name"
+                    name="first_name"
+                    type="text"
+                    placeholder="First name"
+                    value={formData.first_name}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isLoading}
+                    className="h-10 border-gray-200 rounded-lg focus:border-violet-500 focus:ring-violet-500/20 transition-all"
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="last_name" className="text-gray-700 font-medium">Last Name *</FieldLabel>
+                  <Input
+                    id="last_name"
+                    name="last_name"
+                    type="text"
+                    placeholder="Last name"
+                    value={formData.last_name}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isLoading}
+                    className="h-10 border-gray-200 rounded-lg focus:border-violet-500 focus:ring-violet-500/20 transition-all"
+                  />
+                </Field>
+              </div>
             </div>
 
             <Field>
@@ -194,7 +213,7 @@ export function RegisterForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field>
-                <FieldLabel htmlFor="phone" className="text-gray-700 font-medium">Phone Number</FieldLabel>
+                <FieldLabel htmlFor="phone" className="text-gray-700 font-medium">Phone Number *</FieldLabel>
                 <Input
                   id="phone"
                   name="phone"
@@ -202,13 +221,14 @@ export function RegisterForm({
                   placeholder="+1 (555) 123-4567"
                   value={formData.phone}
                   onChange={handleInputChange}
+                  required
                   disabled={isLoading}
                   className="h-10 border-gray-200 rounded-lg focus:border-violet-500 focus:ring-violet-500/20 transition-all"
                 />
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="address" className="text-gray-700 font-medium">Business Address</FieldLabel>
+                <FieldLabel htmlFor="address" className="text-gray-700 font-medium">Business Address *</FieldLabel>
                 <Input
                   id="address"
                   name="address"
@@ -216,6 +236,7 @@ export function RegisterForm({
                   placeholder="Enter your business address"
                   value={formData.address}
                   onChange={handleInputChange}
+                  required
                   disabled={isLoading}
                   className="h-10 border-gray-200 rounded-lg focus:border-violet-500 focus:ring-violet-500/20 transition-all"
                 />

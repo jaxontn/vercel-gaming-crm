@@ -246,7 +246,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-700 hover:to-fuchsia-700 shadow-lg shadow-violet-500/25"
+              className="data-[slot=sidebar-menu-button]:!p-1.5 bg-gray-100 text-gray-900 hover:bg-gray-200 shadow-sm"
             >
               <Link href="/dashboard">
                 <IconBulb className="!size-5" />

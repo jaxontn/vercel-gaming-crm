@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@/lib/auth"
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -39,6 +40,11 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+  }
 
   return (
     <SidebarMenu>
@@ -98,7 +104,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>

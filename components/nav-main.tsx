@@ -30,14 +30,14 @@ export function NavMain({
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
               tooltip="Quick Create"
-              className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-700 hover:to-fuchsia-700 min-w-8 duration-200 ease-linear shadow-lg shadow-violet-500/25"
+              className="bg-gray-100 text-gray-900 hover:bg-gray-200 min-w-8 duration-200 ease-linear shadow-sm"
             >
               <IconCirclePlusFilled />
               <span>Quick Create</span>
             </SidebarMenuButton>
             <Button
               size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0 border-violet-200 text-violet-600 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-300"
+              className="size-8 group-data-[collapsible=icon]:opacity-0 border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-300"
               variant="outline"
             >
               <IconMail />

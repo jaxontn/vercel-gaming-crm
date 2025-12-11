@@ -19,7 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginPublic: (email: string, password: string) => Promise<void>;
-  registerMerchant: (businessName: string, contactName: string, email: string, phone: string, password: string) => Promise<void>;
+  registerMerchant: (businessName: string, firstName: string, lastName: string, email: string, phone: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
 }
@@ -203,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
-  const registerMerchant = async (businessName: string, contactName: string, email: string, phone: string, password: string) => {
+  const registerMerchant = async (businessName: string, firstName: string, lastName: string, email: string, phone: string, password: string) => {
     try {
       setIsLoading(true);
 
@@ -216,7 +216,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           action: 'register',
           business_name: businessName,
-          contact_name: contactName,
+          first_name: firstName,
+          last_name: lastName,
           email,
           phone,
           password

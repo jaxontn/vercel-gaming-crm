@@ -306,6 +306,7 @@ class APIClient {
       headers: {
         ...defaultHeaders,
         ...options.headers,
+        ...options.headers,
       },
     });
 
@@ -443,7 +444,11 @@ export const publicValidateQRCode = async (uniqueId: string) => {
 /**
  * Public customer find by phone - no auth required
  */
-export const publicFindCustomerByPhone = async (phone: string, merchantId: string) => {
+export const publicFindCustomerByPhone = async (phone: string, merchantId: string, details?: {
+  name?: string;
+  email?: string;
+  instagram?: string;
+}) => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/customer-find-by-phone-public.php`, {
       method: 'POST',
@@ -452,7 +457,10 @@ export const publicFindCustomerByPhone = async (phone: string, merchantId: strin
       },
       body: JSON.stringify({
         phone,
-        merchantId: merchantId
+        merchantId: merchantId,
+        ...(details?.name && { name: details.name }),
+        ...(details?.email && { email: details.email }),
+        ...(details?.instagram && { instagram: details.instagram })
       })
     });
 
