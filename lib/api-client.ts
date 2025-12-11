@@ -564,3 +564,34 @@ export const publicCheckQRStatus = async (uniqueId: string) => {
     throw error;
   }
 };
+
+/**
+ * Track game completion
+ */
+export const trackGameCompletion = async (gameData: {
+  customer_id: string;
+  merchant_id: string;
+  game_id: string;
+  game_type: string;
+  points_earned: number;
+  session_duration?: number;
+  score?: number;
+  completed_at?: string;
+}) => {
+  try {
+    // Use local proxy to avoid CORS
+    const response = await fetch('/api/proxy/game-tracking', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(gameData)
+    });
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Track game completion error:', error);
+    throw error;
+  }
+};

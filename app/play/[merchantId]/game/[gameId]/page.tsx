@@ -21,7 +21,7 @@ import { LuckyDice } from "@/components/games/lucky-dice"
 import { QuickTap } from "@/components/games/quick-tap"
 import { WordPuzzle } from "@/components/games/word-puzzle"
 import { ColorMatch } from "@/components/games/color-match"
-import { callApi, publicMarkQRUsed, publicCheckQRStatus } from "@/lib/api-client"
+import { callApi, publicMarkQRUsed, publicCheckQRStatus, trackGameCompletion } from "@/lib/api-client"
 
 interface PlayerData {
   id?: string
@@ -112,6 +112,7 @@ export default function GamePage() {
   const merchantId = params.merchantId as string
   const qrCode = searchParams.get('qrCode')
   const [playerId, setPlayerId] = useState<string | null>(null)
+  const [gameStartTime, setGameStartTime] = useState<number>(Date.now())
 
   const [playerData, setPlayerData] = useState<PlayerData | null>(null)
   const [isSpinning, setIsSpinning] = useState(false)
@@ -208,6 +209,64 @@ export default function GamePage() {
     }
   }, [qrCode, isClient, qrStatusChecked, playerData]);
 
+  // Reset game start time when game changes
+  useEffect(() => {
+    setGameStartTime(Date.now());
+  }, [gameId]);
+
+  const handleGameTracking = async (pointsEarned: number, score?: number) => {
+    if (!playerData?.id || !isClient) return;
+
+    const duration = Math.floor((Date.now() - gameStartTime) / 1000);
+
+    // snake_case conversion for game type
+    const gameType = gameId.replace(/-/g, '_');
+
+    const gameDataPayload = {
+      customer_id: playerData.id,
+      merchant_id: merchantId,
+      game_id: `${gameId}_${Date.now()}`,
+      game_type: gameType,
+      points_earned: pointsEarned,
+      session_duration: duration,
+      score: score || pointsEarned * 10,
+      completed_at: new Date().toISOString()
+    };
+
+    try {
+      console.log('Tracking game completion:', gameDataPayload);
+      const result = await trackGameCompletion(gameDataPayload);
+
+      if (result.success && result.data?.updated_stats) {
+        console.log('Game tracking success:', result.data);
+        const updatedStats = result.data.updated_stats;
+
+        // Update local state with server authoritative data
+        setPlayerData(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            totalPoints: updatedStats.total_points || prev.totalPoints,
+            // Assuming games_played from server is the count, but we treat it as array in local
+            gamesPlayed: [...(prev.gamesPlayed || []), gameId]
+          };
+        });
+
+        // Also update local storage to persist the new total points
+        const stored = localStorage.getItem(`player_${playerData.id}`);
+        if (stored) {
+          const data = JSON.parse(stored);
+          data.totalPoints = updatedStats.total_points || data.totalPoints;
+          data.gamesPlayed = [...(data.gamesPlayed || []), gameId];
+          localStorage.setItem(`player_${playerData.id}`, JSON.stringify(data));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to track game:', error);
+      // Fallback: We already updated local state optimistically in the calling functions
+    }
+  };
+
   const handleSpin = () => {
     if (isSpinning || hasSpun || !isClient) return
 
@@ -230,8 +289,10 @@ export default function GamePage() {
 
       setLastWin(prize.value)
 
-      // Update player points
-      if (playerData && prize.value > 0) {
+      setLastWin(prize.value)
+
+      // Update player points locally (optimistic)
+      if (playerData) {
         const newTotalPoints = (playerData.totalPoints || 0) + prize.value
         const updatedData = {
           ...playerData,
@@ -241,6 +302,9 @@ export default function GamePage() {
 
         localStorage.setItem(`player_${playerId}`, JSON.stringify(updatedData))
         setPlayerData(updatedData)
+
+        // API Tracking
+        handleGameTracking(prize.value, prize.value * 10);
       }
 
       // Update daily play count
@@ -252,12 +316,15 @@ export default function GamePage() {
       setHasSpun(newPlays >= 3)
 
       setIsSpinning(false)
+      // Reset timer for next spin? Or maybe session is just one spin? 
+      // Usually session is per game play.
+      setGameStartTime(Date.now());
     }, 4000)
   }
 
   const handlePointsEarned = async (points: number) => {
     // Update player points
-    if (playerData && points > 0 && isClient && playerId) {
+    if (playerData && isClient && playerId) {
       const newTotalPoints = (playerData.totalPoints || 0) + points
       const updatedData = {
         ...playerData,
@@ -268,11 +335,17 @@ export default function GamePage() {
       localStorage.setItem(`player_${playerId}`, JSON.stringify(updatedData))
       setPlayerData(updatedData)
 
+      // API Tracking
+      handleGameTracking(points);
+
+      // Reset timer for next game
+      setGameStartTime(Date.now());
+
       // QR code is already marked as used when page loads, no need to mark again here
     }
   }
 
-  
+
   const formatPhoneNumber = (phone: string) => {
     if (phone.length >= 7) {
       return `XXX-XXX-${phone.slice(-4)}`
@@ -468,9 +541,8 @@ export default function GamePage() {
 
                 {/* Result */}
                 {lastWin !== null && (
-                  <div className={`p-4 rounded-lg text-center ${
-                    lastWin > 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-gray-100 dark:bg-gray-800'
-                  }`}>
+                  <div className={`p-4 rounded-lg text-center ${lastWin > 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-gray-100 dark:bg-gray-800'
+                    }`}>
                     {lastWin > 0 ? (
                       <>
                         <IconConfetti className="w-8 h-8 text-green-600 mx-auto mb-2" />
