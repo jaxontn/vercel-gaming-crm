@@ -124,8 +124,8 @@ export default function GameGallery() {
     if (playerId) {
       // Clean the player ID by trimming whitespace
       const cleanPlayerId = playerId.trim()
-      console.log('Original playerId:', `"${playerId}"`)
-      console.log('Clean playerId:', `"${cleanPlayerId}"`)
+      //console.log('Original playerId:', `"${playerId}"`)
+      //console.log('Clean playerId:', `"${cleanPlayerId}"`)
 
       // Try multiple possible keys for player data
       const possibleKeys = [
@@ -156,14 +156,14 @@ export default function GameGallery() {
             gamesPlayed: data.gamesPlayed || []
           }
           setPlayerData(completePlayerData)
-          console.log(`Found player data with key: ${foundKey}`)
+          //console.log(`Found player data with key: ${foundKey}`)
         } catch (error) {
           console.error('Error parsing player data:', error)
         }
       } else {
         console.error(`No player data found for ID: ${cleanPlayerId}`)
-        console.log('Tried keys:', possibleKeys)
-        console.log('Available localStorage keys:', Object.keys(localStorage).filter(k => k.startsWith('player_')))
+        //console.log('Tried keys:', possibleKeys)
+        //console.log('Available localStorage keys:', Object.keys(localStorage).filter(k => k.startsWith('player_')))
       }
     }
   }, [playerId])
@@ -298,9 +298,8 @@ export default function GameGallery() {
             {games.map((game) => (
               <Card
                 key={game.id}
-                className={`cursor-pointer transition-all hover:shadow-lg ${
-                  selectedGame === game.id ? 'ring-2 ring-purple-500' : ''
-                }`}
+                className={`cursor-pointer transition-all hover:shadow-lg ${selectedGame === game.id ? 'ring-2 ring-purple-500' : ''
+                  }`}
                 onClick={() => handleGameSelect(game.id)}
               >
                 <CardHeader className="pb-3">
@@ -364,18 +363,16 @@ export default function GameGallery() {
               ].map((player) => (
                 <div
                   key={player.rank}
-                  className={`flex items-center justify-between p-2 rounded ${
-                    player.name === formatPhoneNumber(playerData.phone)
+                  className={`flex items-center justify-between p-2 rounded ${player.name === formatPhoneNumber(playerData.phone)
                       ? 'bg-purple-100 dark:bg-purple-900/20'
                       : 'bg-gray-50 dark:bg-gray-800/50'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold ${
-                      player.rank === 1 ? 'text-yellow-500' :
-                      player.rank === 2 ? 'text-gray-400' :
-                      player.rank === 3 ? 'text-orange-600' : 'text-gray-600'
-                    }`}>
+                    <span className={`text-xs font-bold ${player.rank === 1 ? 'text-yellow-500' :
+                        player.rank === 2 ? 'text-gray-400' :
+                          player.rank === 3 ? 'text-orange-600' : 'text-gray-600'
+                      }`}>
                       #{player.rank}
                     </span>
                     <span className="text-xs text-gray-900 dark:text-white">

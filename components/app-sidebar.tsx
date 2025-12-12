@@ -188,21 +188,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           // User is authenticated, fetch games from API
           const response = await callApi('merchant_games', 'list')
 
-          console.log('Sidebar API Response:', response) // Debug log
+          //console.log('Sidebar API Response:', response) // Debug log
 
           if (response.status === 'SUCCESS' && response.data?.games) {
-            console.log('Games found:', response.data.games) // Debug log
+            //console.log('Games found:', response.data.games) // Debug log
             setGames(response.data.games)
           } else {
             // No games available if API response is not successful
-            console.log('No games found or API response not successful')
-            console.log('Response status:', response.status)
-            console.log('Response data:', response.data)
+            //console.log('No games found or API response not successful')
+            //console.log('Response status:', response.status)
+            //console.log('Response data:', response.data)
             setGames([])
           }
         } else {
           // User is not authenticated, no games available
-          console.log('User not authenticated, no games to display')
+          //console.log('User not authenticated, no games to display')
           setGames([])
         }
       } catch (err) {
@@ -220,13 +220,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Transform games to NavClouds format
   const navClouds = React.useMemo(() => {
     const transformed = transformGamesToNavClouds(games)
-    console.log('Transformed navClouds:', transformed) // Debug log
+    //console.log('Transformed navClouds:', transformed) // Debug log
     return transformed
   }, [games])
 
   // Enhanced NavClouds component that supports badges
   const NavCloudsWithBadges = ({ items, pathname }: { items: typeof navClouds; pathname: string }) => {
-    console.log('NavCloudsWithBadges - loading:', loading, 'items:', items) // Debug log
+    //console.log('NavCloudsWithBadges - loading:', loading, 'items:', items) // Debug log
     return (
       <div className="relative">
         {loading && (

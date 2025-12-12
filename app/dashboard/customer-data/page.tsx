@@ -181,9 +181,9 @@ export default function CustomerDataPage() {
 
   const filteredCustomers = customers.filter(customer => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.phone.includes(searchTerm) ||
-                         (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (customer.instagram && customer.instagram.toLowerCase().includes(searchTerm.toLowerCase()))
+      customer.phone.includes(searchTerm) ||
+      (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (customer.instagram && customer.instagram.toLowerCase().includes(searchTerm.toLowerCase()))
 
     const matchesStatus = statusFilter === "all" || customer.status === statusFilter
     const matchesSource = sourceFilter === "all" || customer.source === sourceFilter
@@ -195,7 +195,7 @@ export default function CustomerDataPage() {
 
   const handleExportData = () => {
     // In a real implementation, this would generate and download the file
-    console.log(`Exporting data as ${exportFormat}`)
+    //console.log(`Exporting data as ${exportFormat}`)
     setIsExportDialogOpen(false)
   }
 

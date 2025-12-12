@@ -234,11 +234,11 @@ export default function GamePage() {
     };
 
     try {
-      console.log('Tracking game completion:', gameDataPayload);
+      //console.log('Tracking game completion:', gameDataPayload);
       const result = await trackGameCompletion(gameDataPayload);
 
       if (result.success && result.data?.updated_stats) {
-        console.log('Game tracking success:', result.data);
+        //console.log('Game tracking success:', result.data);
         const updatedStats = result.data.updated_stats;
 
         // Update local state with server authoritative data

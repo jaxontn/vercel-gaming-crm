@@ -116,23 +116,23 @@ export default function QRCodesPage() {
 
   // Load QR campaigns
   useEffect(() => {
-    console.log('QR Codes useEffect - user:', user)
-    console.log('User keys:', user ? Object.keys(user) : 'No user')
+    //console.log('QR Codes useEffect - user:', user)
+    //console.log('User keys:', user ? Object.keys(user) : 'No user')
 
     const merchantId = getMerchantId();
-    console.log('Merchant ID from helper:', merchantId)
+    //console.log('Merchant ID from helper:', merchantId)
 
     // Only load data if user is authenticated and has a merchant ID
     if (user && merchantId) {
-      console.log('User is authenticated with merchant ID, loading data...')
+      //console.log('User is authenticated with merchant ID, loading data...')
       loadQRCampaigns()
       loadMerchantGames()
     } else {
-      console.log('User not authenticated or missing merchantId')
-      console.log('SessionStorage contents:')
-      console.log('  - id:', sessionStorage.getItem('id'))
-      console.log('  - session_secret exists:', !!sessionStorage.getItem('session_secret'))
-      console.log('  - user_data:', sessionStorage.getItem('user_data'))
+      //console.log('User not authenticated or missing merchantId')
+      //console.log('SessionStorage contents:')
+      //console.log('  - id:', sessionStorage.getItem('id'))
+      //console.log('  - session_secret exists:', !!sessionStorage.getItem('session_secret'))
+      //console.log('  - user_data:', sessionStorage.getItem('user_data'))
       setIsLoading(false)
     }
   }, [user, getMerchantId])
@@ -141,9 +141,9 @@ export default function QRCodesPage() {
     try {
       setIsLoading(true)
       const response = await getQRCampaigns()
-      console.log('QR campaigns response:', response)
-      console.log('Response type:', typeof response)
-      console.log('Response keys:', Object.keys(response || {}))
+      //console.log('QR campaigns response:', response)
+      //console.log('Response type:', typeof response)
+      //console.log('Response keys:', Object.keys(response || {}))
 
       // Check if response is valid and has status
       if (response && typeof response === 'object' && response.status === 'SUCCESS') {
@@ -166,17 +166,17 @@ export default function QRCodesPage() {
 
   const loadMerchantGames = async () => {
     try {
-      console.log('Loading merchant games...')
+      //console.log('Loading merchant games...')
       const response = await getMerchantGames()
-      console.log('Merchant games response:', response)
-      console.log('Response type:', typeof response)
-      console.log('Response keys:', Object.keys(response || {}))
+      //console.log('Merchant games response:', response)
+      //console.log('Response type:', typeof response)
+      //console.log('Response keys:', Object.keys(response || {}))
 
       // Check if response is valid and has status
       if (response && typeof response === 'object' && response.status === 'SUCCESS') {
         // merchant_games API returns data.games array
         const gamesData = response.data?.games || response.data || []
-        console.log('Games data:', gamesData)
+        //console.log('Games data:', gamesData)
         setGames(gamesData)
       } else {
         console.error('Invalid response format:', response)
@@ -358,12 +358,12 @@ export default function QRCodesPage() {
                         <div className="flex items-center gap-2">
                           <span className="text-lg">
                             {game.icon === 'spinner' ? '🎰' :
-                             game.icon === 'brain' ? '🧠' :
-                             game.icon === 'dice' ? '🎲' :
-                             game.icon === 'hand-pointer' ? '👆' :
-                             game.icon === 'book' ? '📚' :
-                             game.icon === 'palette' ? '🎨' :
-                             '🎮'}
+                              game.icon === 'brain' ? '🧠' :
+                                game.icon === 'dice' ? '🎲' :
+                                  game.icon === 'hand-pointer' ? '👆' :
+                                    game.icon === 'book' ? '📚' :
+                                      game.icon === 'palette' ? '🎨' :
+                                        '🎮'}
                           </span>
                           <span>{game.game_name}</span>
                         </div>
@@ -502,8 +502,8 @@ export default function QRCodesPage() {
             <div className="text-2xl font-bold">
               {campaigns.length > 0
                 ? Math.round(
-                    campaigns.reduce((sum, c) => sum + calculateConversionRate(c), 0) / campaigns.length
-                  )
+                  campaigns.reduce((sum, c) => sum + calculateConversionRate(c), 0) / campaigns.length
+                )
                 : 0}%
             </div>
             <p className="text-xs text-muted-foreground">

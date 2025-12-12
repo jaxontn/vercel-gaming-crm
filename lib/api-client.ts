@@ -19,17 +19,17 @@ class APIClient {
     this.server_domain = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
     this.api_domain = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
 
-    console.log('[API CLIENT] Initializing with URL:', apiUrl);
-    console.log('[API CLIENT] Server domain:', this.server_domain);
+    //console.log('[API CLIENT] Initializing with URL:', apiUrl);
+    //console.log('[API CLIENT] Server domain:', this.server_domain);
 
     // Initialize session from sessionStorage only
     if (typeof window !== 'undefined') {
       this.userId = sessionStorage.getItem('id');
       this.secret = sessionStorage.getItem('session_secret');
-      console.log('[API CLIENT] Initial auth state:', {
+      /*console.log('[API CLIENT] Initial auth state:', {
         userId: this.userId,
         hasSecret: !!this.secret
-      });
+      });*/
     }
   }
 
@@ -70,19 +70,19 @@ class APIClient {
       // Special handling for login - no auth required
       const isLoginCall = module === 'users' && method === 'login';
 
-      console.log(`[API DEBUG] Starting callApi: ${module}.${method}`);
-      console.log(`[API DEBUG] Server domain: ${this.server_domain}`);
+      //console.log(`[API DEBUG] Starting callApi: ${module}.${method}`);
+      //console.log(`[API DEBUG] Server domain: ${this.server_domain}`);
 
       // Check authentication - if not set, try to get from sessionStorage
       if (!this.userId || !this.secret) {
-        console.log('[API DEBUG] No auth in memory, checking sessionStorage...');
+        //console.log('[API DEBUG] No auth in memory, checking sessionStorage...');
         if (typeof window !== 'undefined') {
           this.userId = sessionStorage.getItem('id');
           this.secret = sessionStorage.getItem('session_secret');
-          console.log('[API DEBUG] Retrieved from sessionStorage:');
-          console.log('  - userId:', this.userId);
-          console.log('  - hasSecret:', !!this.secret);
-          console.log('  - hasUserData:', !!sessionStorage.getItem('user_data'));
+          //console.log('[API DEBUG] Retrieved from sessionStorage:');
+          //console.log('  - userId:', this.userId);
+          //console.log('  - hasSecret:', !!this.secret);
+          //console.log('  - hasUserData:', !!sessionStorage.getItem('user_data'));
         }
 
         // Only throw error if this is not a login call
@@ -112,9 +112,9 @@ class APIClient {
         const hashInput = normalizedData + this.secret;
         hashedData = await this.md5data(hashInput);
 
-        console.log(`[API DEBUG] Hash input length: ${hashInput.length}`);
-        console.log(`[API DEBUG] Hash input (first 50 chars): ${hashInput.substring(0, 50)}...`);
-        console.log(`[API DEBUG] Generated hash: ${hashedData}`);
+        //console.log(`[API DEBUG] Hash input length: ${hashInput.length}`);
+        //console.log(`[API DEBUG] Hash input (first 50 chars): ${hashInput.substring(0, 50)}...`);
+        //console.log(`[API DEBUG] Generated hash: ${hashedData}`);
       }
 
       // Create session object
@@ -131,8 +131,8 @@ class APIClient {
         data: formData
       });
 
-      console.log(`--> POST ${apiUrl} [${requestId}]`);
-      console.log(postDataWithSession);
+      //console.log(`--> POST ${apiUrl} [${requestId}]`);
+      //console.log(postDataWithSession);
 
       // Make the API call
       const response = await fetch(apiUrl, {
@@ -148,7 +148,7 @@ class APIClient {
       }
 
       const responseData = await response.json();
-      console.log(`<-- Response [${requestId}]`, responseData);
+      //console.log(`<-- Response [${requestId}]`, responseData);
 
       // Extract the actual data from the nested response structure
       if (responseData && responseData.data && responseData.data.status) {
@@ -207,8 +207,8 @@ class APIClient {
         // Set authentication with backend-generated session secret
         this.setAuth(userData.id, sessionSecret);
 
-        console.log('[API DEBUG] Login successful, user ID:', userData.id);
-        console.log('[API DEBUG] Session secret set:', sessionSecret.substring(0, 10) + '...');
+        //console.log('[API DEBUG] Login successful, user ID:', userData.id);
+        //console.log('[API DEBUG] Session secret set:', sessionSecret.substring(0, 10) + '...');
 
         return {
           success: true,
@@ -415,12 +415,14 @@ export const getGameDetails = (gameId: string) => {
 // Public API functions for QR validation and customer operations
 // These use callApi but bypass authentication for public endpoints
 
+
 /**
  * Public QR validation - no auth required
  */
 export const publicValidateQRCode = async (uniqueId: string) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/qr-validate.php`, {
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1').replace(/\/$/, '');
+    const response = await fetch(`${baseUrl}/qr-validate.php`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -450,7 +452,8 @@ export const publicFindCustomerByPhone = async (phone: string, merchantId: strin
   instagram?: string;
 }) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/customer-find-by-phone-public.php`, {
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1').replace(/\/$/, '');
+    const response = await fetch(`${baseUrl}/customer-find-by-phone-public.php`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -486,7 +489,8 @@ export const publicUpsertCustomer = async (customerData: {
   instagram?: string;
 }) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/customer-upsert-public.php`, {
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1').replace(/\/$/, '');
+    const response = await fetch(`${baseUrl}/customer-upsert-public.php`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -520,7 +524,8 @@ export const publicMarkQRUsed = async (data: {
   pointsEarned?: number;
 }) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/qr-mark-used.php`, {
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1').replace(/\/$/, '');
+    const response = await fetch(`${baseUrl}/qr-mark-used.php`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -544,7 +549,8 @@ export const publicMarkQRUsed = async (data: {
  */
 export const publicCheckQRStatus = async (uniqueId: string) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1'}/qr-check-status.php`, {
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1').replace(/\/$/, '');
+    const response = await fetch(`${baseUrl}/qr-check-status.php`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -568,7 +574,11 @@ export const publicCheckQRStatus = async (uniqueId: string) => {
 /**
  * Track game completion
  */
-export const trackGameCompletion = async (gameData: {
+/**
+ * Track game completion
+ * No auth required as it uses merchant_id
+ */
+export const publicTrackGameCompletion = async (gameData: {
   customer_id: string;
   merchant_id: string;
   game_id: string;
@@ -577,10 +587,11 @@ export const trackGameCompletion = async (gameData: {
   session_duration?: number;
   score?: number;
   completed_at?: string;
+  metadata?: Record<string, any>;
 }) => {
   try {
-    // Use local proxy to avoid CORS
-    const response = await fetch('/api/proxy/game-tracking', {
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1').replace(/\/$/, '');
+    const response = await fetch(`${baseUrl}/track.php`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -588,10 +599,16 @@ export const trackGameCompletion = async (gameData: {
       body: JSON.stringify(gameData)
     });
 
-    const result = await response.json();
-    return result;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
   } catch (error) {
     console.error('Track game completion error:', error);
     throw error;
   }
 };
+
+// Backward compatibility alias if needed, or just replace usage
+export const trackGameCompletion = publicTrackGameCompletion;

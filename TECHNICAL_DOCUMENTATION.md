@@ -827,8 +827,8 @@ IconRotateClockwise, IconGift, IconConfetti, IconDeviceGamepad2
 #### **Routing Issues**
 ```typescript
 // Debug dynamic routes
-console.log('Params:', params)
-console.log('SearchParams:', searchParams)
+//console.log('Params:', params)
+//console.log('SearchParams:', searchParams)
 
 // Check URL structure
 const merchantId = params.merchantId as string
